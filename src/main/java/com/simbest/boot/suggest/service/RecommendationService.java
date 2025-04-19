@@ -1,0 +1,247 @@
+package com.simbest.boot.suggest.service;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.simbest.boot.suggest.model.Leader;
+import com.simbest.boot.suggest.model.Organization;
+import com.simbest.boot.suggest.model.RecommendationResult;
+import com.simbest.boot.suggest.model.ResponsibilityDomain;
+import com.simbest.boot.suggest.model.TextSimilarityUtil;
+
+/**
+ * 推荐服务
+ * 提供领导推荐相关的操作
+ */
+public class RecommendationService {
+    private OrganizationService organizationService;
+    private LeaderService leaderService;
+    private DomainService domainService;
+
+    /**
+     * 构造函数
+     *
+     * @param organizationService 组织服务
+     * @param leaderService       领导服务
+     * @param domainService       职责领域服务
+     */
+    public RecommendationService(OrganizationService organizationService,
+            LeaderService leaderService,
+            DomainService domainService) {
+        this.organizationService = organizationService;
+        this.leaderService = leaderService;
+        this.domainService = domainService;
+    }
+
+    /**
+     * 推荐领导账号
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeader(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle) {
+        // 1. 基于组织关系的匹配
+        RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
+        if (orgResult != null) {
+            return orgResult;
+        }
+
+        // 2. 基于职责领域的匹配
+        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle);
+        if (domainResult != null) {
+            return domainResult;
+        }
+
+        // 3. 基于文本相似度的匹配
+        return recommendLeaderBySimilarity(taskTitle);
+    }
+
+    /**
+     * 基于组织关系推荐领导账号
+     *
+     * @param orgId 组织ID
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderByOrganization(String orgId) {
+        if (orgId == null || orgId.isEmpty()) {
+            return null;
+        }
+
+        // 获取组织的分管领导
+        String leaderAccount = organizationService.getLeaderAccountByOrgId(orgId);
+        if (leaderAccount == null || leaderAccount.isEmpty()) {
+            return null;
+        }
+
+        // 获取领导信息
+        Leader leader = leaderService.getLeaderByAccount(leaderAccount);
+        if (leader == null) {
+            return null;
+        }
+
+        // 获取组织信息
+        Organization org = organizationService.getOrganizationById(orgId);
+        String orgName = org != null ? org.getOrgName() : orgId;
+
+        // 创建推荐结果
+        String reason = "基于组织关系匹配：该领导是 " + orgName + " 的分管领导";
+        return new RecommendationResult(leaderAccount, leader.getName(), reason, 1.0);
+    }
+
+    /**
+     * 基于职责领域推荐领导账号
+     *
+     * @param taskTitle 任务标题
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderByDomain(String taskTitle) {
+        if (taskTitle == null || taskTitle.isEmpty()) {
+            return null;
+        }
+
+        // 获取最佳匹配的职责领域
+        AbstractMap.SimpleEntry<String, Double> bestMatch = domainService.getBestMatchDomain(taskTitle);
+        if (bestMatch == null) {
+            return null;
+        }
+
+        String domainId = bestMatch.getKey();
+        double score = bestMatch.getValue();
+
+        // 如果匹配分数低于阈值，则不推荐
+        if (score < 0.1) {
+            return null;
+        }
+
+        // 获取职责领域信息
+        ResponsibilityDomain domain = domainService.getDomainById(domainId);
+        if (domain == null) {
+            return null;
+        }
+
+        // 获取负责该领域的领导账号
+        String leaderAccount = null;
+        for (Leader leader : leaderService.getAllLeaders()) {
+            if (leader.getDomainIds().contains(domainId)) {
+                leaderAccount = leader.getAccount();
+                break;
+            }
+        }
+
+        if (leaderAccount == null) {
+            return null;
+        }
+
+        // 获取领导信息
+        Leader leader = leaderService.getLeaderByAccount(leaderAccount);
+        if (leader == null) {
+            return null;
+        }
+
+        // 获取匹配的关键词
+        List<String> matchedKeywords = domain.getMatchedKeywords(taskTitle);
+        String keywordsStr = String.join("、", matchedKeywords);
+
+        // 创建推荐结果
+        String reason = "基于职责领域匹配：该领导负责 " + domain.getDomainName() + " 领域，匹配关键词：" + keywordsStr;
+        return new RecommendationResult(leaderAccount, leader.getName(), reason, score);
+    }
+
+    /**
+     * 基于文本相似度推荐领导账号
+     *
+     * @param taskTitle 任务标题
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderBySimilarity(String taskTitle) {
+        if (taskTitle == null || taskTitle.isEmpty()) {
+            return null;
+        }
+
+        String bestLeaderAccount = null;
+        double bestScore = 0.0;
+
+        // 遍历所有领导，计算文本相似度
+        for (Leader leader : leaderService.getAllLeaders()) {
+            // 获取领导负责的所有职责领域
+            List<String> domainIds = leader.getDomainIds();
+
+            // 计算任务标题与每个职责领域描述的相似度
+            double totalScore = 0.0;
+            int count = 0;
+
+            for (String domainId : domainIds) {
+                ResponsibilityDomain domain = domainService.getDomainById(domainId);
+                if (domain != null) {
+                    double similarity = TextSimilarityUtil.calculateOverallSimilarity(
+                            taskTitle, domain.getDescription());
+                    totalScore += similarity;
+                    count++;
+                }
+            }
+
+            // 计算平均相似度
+            double avgScore = count > 0 ? totalScore / count : 0.0;
+
+            // 更新最佳匹配
+            if (avgScore > bestScore) {
+                bestScore = avgScore;
+                bestLeaderAccount = leader.getAccount();
+            }
+        }
+
+        // 如果匹配分数低于阈值，则不推荐
+        if (bestScore < 0.1 || bestLeaderAccount == null) {
+            return null;
+        }
+
+        // 获取领导信息
+        Leader leader = leaderService.getLeaderByAccount(bestLeaderAccount);
+        if (leader == null) {
+            return null;
+        }
+
+        // 创建推荐结果
+        String reason = "基于文本相似度匹配：该领导的职责领域与任务标题具有较高的相似度";
+        return new RecommendationResult(bestLeaderAccount, leader.getName(), reason, bestScore);
+    }
+
+    /**
+     * 获取所有可能的推荐结果
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @return 所有可能的推荐结果列表
+     */
+    public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle) {
+        List<RecommendationResult> results = new ArrayList<>();
+
+        // 1. 基于组织关系的匹配
+        RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
+        if (orgResult != null) {
+            results.add(orgResult);
+        }
+
+        // 2. 基于职责领域的匹配
+        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle);
+        if (domainResult != null) {
+            results.add(domainResult);
+        }
+
+        // 3. 基于文本相似度的匹配
+        RecommendationResult similarityResult = recommendLeaderBySimilarity(taskTitle);
+        if (similarityResult != null) {
+            results.add(similarityResult);
+        }
+
+        return results;
+    }
+}
