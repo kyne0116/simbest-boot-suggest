@@ -1,0 +1,34 @@
+{
+  "textSimilarity": {
+    "characterLevel": {
+      "jaccardWeight": 0.3,
+      "cosineWeight": 0.4,
+      "levenshteinWeight": 0.3
+    },
+    "tokenLevel": {
+      "jaccardWeight": 0.35,
+      "cosineWeight": 0.45,
+      "levenshteinWeight": 0.2
+    },
+    "finalCombination": {
+      "characterLevelWeight": 0.4,
+      "tokenLevelWeight": 0.6
+    }
+  },
+  "keywordMatching": {
+    "directMatchMultiplier": 2.0,
+    "tokenMatchMultiplier": 1.5,
+    "synonymMatchMultiplier": 0.8,
+    "keywordCountRatioWeight": 0.4,
+    "weightedRatioWeight": 0.6,
+    "keywordWeightBase": 1.0,
+    "keywordLengthFactor": 0.1,
+    "keywordMaxLength": 10
+  },
+  "tokenizer": {
+    "maxWordLength": 10
+  },
+  "domainId": {
+    "prefix": "domain_"
+  }
+}

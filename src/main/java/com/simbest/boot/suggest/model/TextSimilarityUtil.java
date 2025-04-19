@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.simbest.boot.suggest.util.ChineseTokenizer;
+import com.simbest.boot.suggest.util.DataLoader;
 
 /**
  * 文本相似度工具类
@@ -168,12 +169,31 @@ public class TextSimilarityUtil {
             return 0.0;
         }
 
+        // 从配置文件中加载字符级相似度算法的权重
+        Map<String, Object> characterLevelConfig = DataLoader.getAlgorithmWeightSection("textSimilarity");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> characterWeights = characterLevelConfig.containsKey("characterLevel")
+                ? (Map<String, Object>) characterLevelConfig.get("characterLevel")
+                : new HashMap<>();
+
+        // 获取各算法权重
+        double jaccardWeight = characterWeights.containsKey("jaccardWeight")
+                ? ((Number) characterWeights.get("jaccardWeight")).doubleValue()
+                : 0.3;
+        double cosineWeight = characterWeights.containsKey("cosineWeight")
+                ? ((Number) characterWeights.get("cosineWeight")).doubleValue()
+                : 0.4;
+        double levenshteinWeight = characterWeights.containsKey("levenshteinWeight")
+                ? ((Number) characterWeights.get("levenshteinWeight")).doubleValue()
+                : 0.3;
+
         double jaccardSimilarity = calculateJaccardSimilarity(text1, text2);
         double cosineSimilarity = calculateCosineSimilarity(text1, text2);
         double levenshteinSimilarity = calculateLevenshteinSimilarity(text1, text2);
 
         // 加权平均
-        return 0.3 * jaccardSimilarity + 0.4 * cosineSimilarity + 0.3 * levenshteinSimilarity;
+        return jaccardWeight * jaccardSimilarity + cosineWeight * cosineSimilarity
+                + levenshteinWeight * levenshteinSimilarity;
     }
 
     /**
@@ -276,12 +296,31 @@ public class TextSimilarityUtil {
             return 0.0;
         }
 
+        // 从配置文件中加载词语级相似度算法的权重
+        Map<String, Object> textSimilarityConfig = DataLoader.getAlgorithmWeightSection("textSimilarity");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> tokenWeights = textSimilarityConfig.containsKey("tokenLevel")
+                ? (Map<String, Object>) textSimilarityConfig.get("tokenLevel")
+                : new HashMap<>();
+
+        // 获取各算法权重
+        double jaccardWeight = tokenWeights.containsKey("jaccardWeight")
+                ? ((Number) tokenWeights.get("jaccardWeight")).doubleValue()
+                : 0.35;
+        double cosineWeight = tokenWeights.containsKey("cosineWeight")
+                ? ((Number) tokenWeights.get("cosineWeight")).doubleValue()
+                : 0.45;
+        double levenshteinWeight = tokenWeights.containsKey("levenshteinWeight")
+                ? ((Number) tokenWeights.get("levenshteinWeight")).doubleValue()
+                : 0.2;
+
         double tokenJaccardSimilarity = calculateTokenJaccardSimilarity(text1, text2);
         double tokenCosineSimilarity = calculateTokenCosineSimilarity(text1, text2);
         double levenshteinSimilarity = calculateLevenshteinSimilarity(text1, text2);
 
-        // 加权平均，提高基于分词的算法权重
-        return 0.35 * tokenJaccardSimilarity + 0.45 * tokenCosineSimilarity + 0.2 * levenshteinSimilarity;
+        // 加权平均
+        return jaccardWeight * tokenJaccardSimilarity + cosineWeight * tokenCosineSimilarity
+                + levenshteinWeight * levenshteinSimilarity;
     }
 
     /**
@@ -297,10 +336,25 @@ public class TextSimilarityUtil {
             return 0.0;
         }
 
+        // 从配置文件中加载最终综合相似度的权重
+        Map<String, Object> textSimilarityConfig = DataLoader.getAlgorithmWeightSection("textSimilarity");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> finalWeights = textSimilarityConfig.containsKey("finalCombination")
+                ? (Map<String, Object>) textSimilarityConfig.get("finalCombination")
+                : new HashMap<>();
+
+        // 获取各级别相似度的权重
+        double characterLevelWeight = finalWeights.containsKey("characterLevelWeight")
+                ? ((Number) finalWeights.get("characterLevelWeight")).doubleValue()
+                : 0.4;
+        double tokenLevelWeight = finalWeights.containsKey("tokenLevelWeight")
+                ? ((Number) finalWeights.get("tokenLevelWeight")).doubleValue()
+                : 0.6;
+
         double overallSimilarity = calculateOverallSimilarity(text1, text2);
         double tokenOverallSimilarity = calculateTokenOverallSimilarity(text1, text2);
 
-        // 加权平均，提高词语级相似度权重
-        return 0.4 * overallSimilarity + 0.6 * tokenOverallSimilarity;
+        // 加权平均
+        return characterLevelWeight * overallSimilarity + tokenLevelWeight * tokenOverallSimilarity;
     }
 }

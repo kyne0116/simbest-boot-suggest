@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.simbest.boot.suggest.util.ChineseTokenizer;
+import com.simbest.boot.suggest.util.DataLoader;
 import com.simbest.boot.suggest.util.SynonymManager;
 
 import lombok.AllArgsConstructor;
@@ -51,7 +52,11 @@ public class ResponsibilityDomain {
      * @param description       领域描述
      */
     public ResponsibilityDomain(String domainName, String responsiblePerson, String description) {
-        this.domainId = "domain_" + System.currentTimeMillis(); // 生成一个临时ID
+        // 从配置文件中获取领域ID前缀
+        Map<String, Object> domainConfig = DataLoader.getAlgorithmWeightSection("domainId");
+        String prefix = domainConfig.containsKey("prefix") ? (String) domainConfig.get("prefix") : "domain_";
+
+        this.domainId = prefix + System.currentTimeMillis(); // 生成一个临时ID
         this.domainName = domainName;
         this.responsiblePerson = responsiblePerson;
         this.description = description;
@@ -87,6 +92,39 @@ public class ResponsibilityDomain {
             return 0.0;
         }
 
+        // 从配置文件中加载关键词匹配算法的权重配置
+        Map<String, Object> keywordConfig = DataLoader.getAlgorithmWeightSection("keywordMatching");
+
+        // 获取各种匹配方式的权重系数
+        double directMatchMultiplier = keywordConfig.containsKey("directMatchMultiplier")
+                ? ((Number) keywordConfig.get("directMatchMultiplier")).doubleValue()
+                : 2.0;
+        double tokenMatchMultiplier = keywordConfig.containsKey("tokenMatchMultiplier")
+                ? ((Number) keywordConfig.get("tokenMatchMultiplier")).doubleValue()
+                : 1.5;
+        double synonymMatchMultiplier = keywordConfig.containsKey("synonymMatchMultiplier")
+                ? ((Number) keywordConfig.get("synonymMatchMultiplier")).doubleValue()
+                : 0.8;
+
+        // 获取关键词权重计算参数
+        double keywordWeightBase = keywordConfig.containsKey("keywordWeightBase")
+                ? ((Number) keywordConfig.get("keywordWeightBase")).doubleValue()
+                : 1.0;
+        double keywordLengthFactor = keywordConfig.containsKey("keywordLengthFactor")
+                ? ((Number) keywordConfig.get("keywordLengthFactor")).doubleValue()
+                : 0.1;
+        int keywordMaxLength = keywordConfig.containsKey("keywordMaxLength")
+                ? ((Number) keywordConfig.get("keywordMaxLength")).intValue()
+                : 10;
+
+        // 获取综合评分的权重
+        double keywordCountRatioWeight = keywordConfig.containsKey("keywordCountRatioWeight")
+                ? ((Number) keywordConfig.get("keywordCountRatioWeight")).doubleValue()
+                : 0.4;
+        double weightedRatioWeight = keywordConfig.containsKey("weightedRatioWeight")
+                ? ((Number) keywordConfig.get("weightedRatioWeight")).doubleValue()
+                : 0.6;
+
         // 分词处理输入文本
         List<String> textTokens = ChineseTokenizer.tokenize(text);
 
@@ -94,7 +132,7 @@ public class ResponsibilityDomain {
         Map<String, Double> keywordWeights = new HashMap<>();
         for (String keyword : keywords) {
             // 关键词长度越长，权重越高
-            double weight = 1.0 + (0.1 * Math.min(keyword.length(), 10));
+            double weight = keywordWeightBase + (keywordLengthFactor * Math.min(keyword.length(), keywordMaxLength));
             keywordWeights.put(keyword, weight);
         }
 
@@ -126,17 +164,17 @@ public class ResponsibilityDomain {
 
                 // 如果是直接匹配，给予更高权重
                 if (directMatch) {
-                    matchWeight *= 2.0; // 增加直接匹配的权重
+                    matchWeight *= directMatchMultiplier;
                 }
 
                 // 如果是精确匹配，给予更高权重
                 if (tokenMatch) {
-                    matchWeight *= 1.5; // 增加精确匹配的权重
+                    matchWeight *= tokenMatchMultiplier;
                 }
 
                 // 如果是同义词匹配，给予较低权重
                 if (synonymMatch && !directMatch && !tokenMatch) {
-                    matchWeight *= 0.8;
+                    matchWeight *= synonymMatchMultiplier;
                 }
 
                 weightedMatchScore += matchWeight;
@@ -153,8 +191,8 @@ public class ResponsibilityDomain {
         }
         double weightedRatio = weightedMatchScore / totalWeight;
 
-        // 综合评分：40%基于匹配关键词数量，60%基于加权分数
-        return 0.4 * keywordCountRatio + 0.6 * weightedRatio;
+        // 综合评分
+        return keywordCountRatioWeight * keywordCountRatio + weightedRatioWeight * weightedRatio;
     }
 
     /**
@@ -220,14 +258,14 @@ public class ResponsibilityDomain {
             return leaderAccount;
         }
 
-        // 根据领域名称确定负责人账号
-        if (domainName.equals("网络安全")) {
-            return "xuhyun";
-        } else if (domainName.equals("计费账务")) {
-            return "zhangyk";
-        } else if (domainName.equals("系统管理") || domainName.equals("数据治理")) {
-            return "zhaobin";
+        // 从配置文件中加载领域到领导账号的映射
+        Map<String, String> domainLeaderMapping = DataLoader.loadDomainLeaderMapping();
+
+        // 根据领域名称获取负责人账号
+        if (domainLeaderMapping.containsKey(domainName)) {
+            return domainLeaderMapping.get(domainName);
         }
+
         return null;
     }
 

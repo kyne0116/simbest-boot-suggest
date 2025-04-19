@@ -176,4 +176,40 @@ public class DataLoader {
         }
         return new HashMap<>();
     }
+
+    /**
+     * 加载算法权重配置
+     *
+     * @return 算法权重配置
+     */
+    public static Map<String, Object> loadAlgorithmWeights() {
+        try {
+            InputStream is = DataLoader.class.getResourceAsStream("/config/algorithm-weights.json");
+            if (is != null) {
+                Map<String, Object> config = objectMapper.readValue(is, new TypeReference<Map<String, Object>>() {
+                });
+                System.out.println("已加载算法权重配置");
+                return config;
+            }
+        } catch (IOException e) {
+            System.err.println("加载算法权重配置失败: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * 获取算法权重配置中的特定部分
+     *
+     * @param section 配置部分名称
+     * @return 特定部分的配置
+     */
+    @SuppressWarnings("unchecked")
+    public static Map<String, Object> getAlgorithmWeightSection(String section) {
+        Map<String, Object> weights = loadAlgorithmWeights();
+        if (weights.containsKey(section)) {
+            return (Map<String, Object>) weights.get(section);
+        }
+        return new HashMap<>();
+    }
 }

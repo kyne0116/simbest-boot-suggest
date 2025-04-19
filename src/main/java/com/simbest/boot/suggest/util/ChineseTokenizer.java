@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -16,7 +17,7 @@ import java.util.Set;
  */
 public class ChineseTokenizer {
     private static final Set<String> dictionary = new HashSet<>();
-    private static final int MAX_WORD_LENGTH = 10; // 最大词长
+    private static int maxWordLength = 10; // 默认最大词长
     private static boolean isInitialized = false;
 
     /**
@@ -28,6 +29,13 @@ public class ChineseTokenizer {
         }
 
         try {
+            // 从配置文件中加载分词器配置
+            Map<String, Object> tokenizerConfig = DataLoader.getAlgorithmWeightSection("tokenizer");
+            if (tokenizerConfig.containsKey("maxWordLength")) {
+                maxWordLength = ((Number) tokenizerConfig.get("maxWordLength")).intValue();
+                System.out.println("已加载分词器最大词长配置: " + maxWordLength);
+            }
+
             // 从资源文件加载词典
             InputStream is = ChineseTokenizer.class.getResourceAsStream("/dictionary.txt");
             if (is != null) {
@@ -109,7 +117,7 @@ public class ChineseTokenizer {
         while (start < text.length()) {
             // 尝试最长匹配
             boolean found = false;
-            for (int end = Math.min(start + MAX_WORD_LENGTH, text.length()); end > start; end--) {
+            for (int end = Math.min(start + maxWordLength, text.length()); end > start; end--) {
                 String word = text.substring(start, end);
                 if (dictionary.contains(word)) {
                     result.add(word);

@@ -72,6 +72,7 @@ public class SimbestApplication {
             System.out.println("2. 常用词列表: " + DataLoader.loadCommonWords().size() + " 个词语");
             System.out.println("3. 同义词组: " + DataLoader.loadCommonSynonyms().size() + " 个组");
             System.out.println("4. 阈值配置: " + DataLoader.loadThresholdConfig().size() + " 个参数");
+            System.out.println("5. 算法权重配置: " + DataLoader.loadAlgorithmWeights().size() + " 个部分");
 
             // 初始化中文分词词典
             System.out.println("正在初始化中文分词词典...");
