@@ -45,23 +45,21 @@ public class RecommendationController {
     /**
      * 推荐领导
      *
-     * @param userAccount 当前办理人账号
-     * @param orgId       当前办理人组织ID
+     * @param userAccount 当前办理人账号（可选）
+     * @param orgId       当前办理人组织ID（可选）
      * @param taskTitle   任务标题
-     * @param useOrg      是否使用基于组织关系的匹配，默认为true
      * @return 推荐结果
      */
     @GetMapping("/recommend")
     public RecommendationResult recommendLeader(
-            @RequestParam String userAccount,
-            @RequestParam String orgId,
-            @RequestParam String taskTitle,
-            @RequestParam(required = false, defaultValue = "true") boolean useOrg) {
+            @RequestParam(required = false) String userAccount,
+            @RequestParam(required = false) String orgId,
+            @RequestParam String taskTitle) {
         System.out.println("\n\n=== 推荐请求 ===\n");
-        System.out.println("用户账号: " + userAccount);
-        System.out.println("组织ID: " + orgId);
+        System.out.println("用户账号: " + (userAccount != null ? userAccount : "未提供"));
+        System.out.println("组织ID: " + (orgId != null ? orgId : "未提供"));
         System.out.println("任务标题: " + taskTitle);
-        System.out.println("使用组织关系: " + useOrg);
+        System.out.println("使用组织关系: " + (orgId != null && !orgId.isEmpty()));
 
         // 检查数据加载情况
         System.out.println("\n组织数量: " + organizationService.getAllOrganizations().size());
@@ -95,7 +93,10 @@ public class RecommendationController {
         double threshold = recommendationService.calculateDynamicThreshold(taskTitle);
         System.out.println("\n动态阈值: " + threshold);
 
-        RecommendationResult result = recommendationService.recommendLeader(userAccount, orgId, taskTitle, useOrg);
+        RecommendationResult result = recommendationService.recommendLeader(
+                userAccount != null ? userAccount : "",
+                orgId != null ? orgId : "",
+                taskTitle);
         System.out.println("\n推荐结果: " + (result != null ? result : "无推荐结果"));
         System.out.println("\n=== 推荐结束 ===\n\n");
         return result;
@@ -104,19 +105,20 @@ public class RecommendationController {
     /**
      * 获取所有可能的推荐结果
      *
-     * @param userAccount 当前办理人账号
-     * @param orgId       当前办理人组织ID
+     * @param userAccount 当前办理人账号（可选）
+     * @param orgId       当前办理人组织ID（可选）
      * @param taskTitle   任务标题
-     * @param useOrg      是否使用基于组织关系的匹配，默认为true
      * @return 所有可能的推荐结果列表
      */
     @GetMapping("/recommend/all")
     public List<RecommendationResult> getAllRecommendations(
-            @RequestParam String userAccount,
-            @RequestParam String orgId,
-            @RequestParam String taskTitle,
-            @RequestParam(required = false, defaultValue = "true") boolean useOrg) {
-        return recommendationService.getAllPossibleRecommendations(userAccount, orgId, taskTitle, useOrg);
+            @RequestParam(required = false) String userAccount,
+            @RequestParam(required = false) String orgId,
+            @RequestParam String taskTitle) {
+        return recommendationService.getAllPossibleRecommendations(
+                userAccount != null ? userAccount : "",
+                orgId != null ? orgId : "",
+                taskTitle);
     }
 
     /**

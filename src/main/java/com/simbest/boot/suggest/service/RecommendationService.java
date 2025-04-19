@@ -42,15 +42,13 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
-     * @param useOrg             是否使用基于组织关系的匹配，默认为true
      * @return 推荐结果
      */
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
-            String taskTitle,
-            boolean useOrg) {
-        // 1. 基于组织关系的匹配（如果useOrg为true）
-        if (useOrg) {
+            String taskTitle) {
+        // 1. 基于组织关系的匹配（当orgId有值时）
+        if (currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
             RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
             if (orgResult != null) {
                 return orgResult;
@@ -65,21 +63,6 @@ public class RecommendationService {
 
         // 3. 基于文本相似度的匹配
         return recommendLeaderBySimilarity(taskTitle);
-    }
-
-    /**
-     * 推荐领导账号（兼容旧版本接口）
-     *
-     * @param currentUserAccount 当前办理人账号
-     * @param currentUserOrgId   当前办理人组织ID
-     * @param taskTitle          任务标题
-     * @return 推荐结果
-     */
-    public RecommendationResult recommendLeader(String currentUserAccount,
-            String currentUserOrgId,
-            String taskTitle) {
-        // 默认使用基于组织关系的匹配
-        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, true);
     }
 
     /**
@@ -297,17 +280,15 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
-     * @param useOrg             是否使用基于组织关系的匹配，默认为true
      * @return 所有可能的推荐结果列表
      */
     public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
             String currentUserOrgId,
-            String taskTitle,
-            boolean useOrg) {
+            String taskTitle) {
         List<RecommendationResult> results = new ArrayList<>();
 
-        // 1. 基于组织关系的匹配（如果useOrg为true）
-        if (useOrg) {
+        // 1. 基于组织关系的匹配（当orgId有值时）
+        if (currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
             RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
             if (orgResult != null) {
                 results.add(orgResult);
@@ -329,18 +310,4 @@ public class RecommendationService {
         return results;
     }
 
-    /**
-     * 获取所有可能的推荐结果（兼容旧版本接口）
-     *
-     * @param currentUserAccount 当前办理人账号
-     * @param currentUserOrgId   当前办理人组织ID
-     * @param taskTitle          任务标题
-     * @return 所有可能的推荐结果列表
-     */
-    public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
-            String currentUserOrgId,
-            String taskTitle) {
-        // 默认使用基于组织关系的匹配
-        return getAllPossibleRecommendations(currentUserAccount, currentUserOrgId, taskTitle, true);
-    }
 }
