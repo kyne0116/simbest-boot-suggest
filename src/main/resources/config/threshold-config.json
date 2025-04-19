@@ -1,0 +1,19 @@
+{
+  "baseThreshold": 0.01,
+  "lengthThresholds": [
+    {
+      "length": 20,
+      "factor": 0.9
+    },
+    {
+      "length": 40,
+      "factor": 0.8
+    }
+  ],
+  "contentAdjustments": [
+    {
+      "keywords": ["紧急", "重要"],
+      "factor": 0.8
+    }
+  ]
+}

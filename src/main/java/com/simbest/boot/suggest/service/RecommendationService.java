@@ -3,12 +3,14 @@ package com.simbest.boot.suggest.service;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.simbest.boot.suggest.model.Leader;
 import com.simbest.boot.suggest.model.Organization;
 import com.simbest.boot.suggest.model.RecommendationResult;
 import com.simbest.boot.suggest.model.ResponsibilityDomain;
 import com.simbest.boot.suggest.model.TextSimilarityUtil;
+import com.simbest.boot.suggest.util.DataLoader;
 
 /**
  * 推荐服务
@@ -243,25 +245,47 @@ public class RecommendationService {
      * @param taskTitle 任务标题
      * @return 动态阈值
      */
+    @SuppressWarnings("unchecked")
     public double calculateDynamicThreshold(String taskTitle) {
+        // 从配置文件加载阈值配置
+        Map<String, Object> config = DataLoader.loadThresholdConfig();
+
         // 基础阈值
-        double baseThreshold = 0.01; // 降低阈值，使其更容易匹配
+        double baseThreshold = config.containsKey("baseThreshold")
+                ? ((Number) config.get("baseThreshold")).doubleValue()
+                : 0.01;
 
         // 根据标题长度调整
-        // 标题越长，阈值可以适当降低
         int length = taskTitle.length();
         double lengthFactor = 1.0;
-        if (length > 20) {
-            lengthFactor = 0.9;
-        }
-        if (length > 40) {
-            lengthFactor = 0.8;
+
+        if (config.containsKey("lengthThresholds")) {
+            List<Map<String, Object>> lengthThresholds = (List<Map<String, Object>>) config.get("lengthThresholds");
+            for (Map<String, Object> threshold : lengthThresholds) {
+                int thresholdLength = ((Number) threshold.get("length")).intValue();
+                double factor = ((Number) threshold.get("factor")).doubleValue();
+                if (length > thresholdLength) {
+                    lengthFactor = factor;
+                }
+            }
         }
 
         // 根据标题中特定词语调整
         double contentFactor = 1.0;
-        if (taskTitle.contains("紧急") || taskTitle.contains("重要")) {
-            contentFactor = 0.8; // 降低阈值，提高匹配概率
+
+        if (config.containsKey("contentAdjustments")) {
+            List<Map<String, Object>> contentAdjustments = (List<Map<String, Object>>) config.get("contentAdjustments");
+            for (Map<String, Object> adjustment : contentAdjustments) {
+                List<String> keywords = (List<String>) adjustment.get("keywords");
+                double factor = ((Number) adjustment.get("factor")).doubleValue();
+
+                for (String keyword : keywords) {
+                    if (taskTitle.contains(keyword)) {
+                        contentFactor = factor;
+                        break;
+                    }
+                }
+            }
         }
 
         return baseThreshold * lengthFactor * contentFactor;

@@ -1,80 +1,45 @@
 [
   {
-    "orgId": "org001",
-    "orgName": "信息安全部",
-    "parentOrgId": "org000",
-    "leaderAccount": "xuhyun"
+    "orgId": "1163561335827320832",
+    "orgName": "系统规划与中台运营室",
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "zhangyaohua1"
   },
   {
-    "orgId": "org002",
-    "orgName": "计费账务部",
-    "parentOrgId": "org000",
-    "leaderAccount": "zhangyk"
+    "orgId": "1163561336464855040",
+    "orgName": "计费账务室",
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "zhangyaohua1"
   },
   {
-    "orgId": "org003",
-    "orgName": "系统管理部",
-    "parentOrgId": "org000",
-    "leaderAccount": "zhaobin"
+    "orgId": "1163561336674570240",
+    "orgName": "软件平台维护室",
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "zhangyaohua1"
+  },
+  
+  {
+    "orgId": "1163561335495970816",
+    "orgName": "运营管理室",
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "zhaobin1"
   },
   {
-    "orgId": "org004",
-    "orgName": "数据治理部",
-    "parentOrgId": "org000",
-    "leaderAccount": "zhaobin"
+    "orgId": "1163561336007675904",
+    "orgName": "管理信息系统室",
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "zhaobin1"
   },
   {
-    "orgId": "org005",
-    "orgName": "网络安全部",
-    "parentOrgId": "org001",
-    "leaderAccount": "xuhyun"
+    "orgId": "1163561336179642368",
+    "orgName": "政企业务支撑室",
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "zhaobin1"
   },
   {
-    "orgId": "org006",
+    "orgId": "1163561336863313920",
     "orgName": "信息安全室",
-    "parentOrgId": "org001",
-    "leaderAccount": "xuhyun"
-  },
-  {
-    "orgId": "org007",
-    "orgName": "计费系统部",
-    "parentOrgId": "org002",
-    "leaderAccount": "zhangyk"
-  },
-  {
-    "orgId": "org008",
-    "orgName": "账务结算部",
-    "parentOrgId": "org002",
-    "leaderAccount": "zhangyk"
-  },
-  {
-    "orgId": "org009",
-    "orgName": "短信营销部",
-    "parentOrgId": "org002",
-    "leaderAccount": "zhangyk"
-  },
-  {
-    "orgId": "org010",
-    "orgName": "系统建设部",
-    "parentOrgId": "org003",
-    "leaderAccount": "zhaobin"
-  },
-  {
-    "orgId": "org011",
-    "orgName": "系统运维部",
-    "parentOrgId": "org003",
-    "leaderAccount": "zhaobin"
-  },
-  {
-    "orgId": "org012",
-    "orgName": "数据分析部",
-    "parentOrgId": "org004",
-    "leaderAccount": "zhaobin"
-  },
-  {
-    "orgId": "org013",
-    "orgName": "AI研发部",
-    "parentOrgId": "org004",
-    "leaderAccount": "zhaobin"
+    "parentOrgId": "2700526267653981965",
+    "leaderAccount": "xuhuiyun"
   }
 ]

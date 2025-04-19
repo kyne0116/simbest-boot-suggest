@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,7 +60,7 @@ public class SynonymManager {
 
             // 添加一些常用同义词
             addCommonSynonyms();
-            
+
             isInitialized = true;
         } catch (IOException e) {
             System.err.println("加载同义词表失败: " + e.getMessage());
@@ -70,22 +71,13 @@ public class SynonymManager {
      * 添加常用同义词
      */
     private static void addCommonSynonyms() {
-        // 网络安全相关
-        addSynonyms("网络安全,信息安全,网信安全,互联网信安");
-        addSynonyms("安全评估,安全检查,安全监督");
-        
-        // 计费账务相关
-        addSynonyms("计费,账务,结算");
-        addSynonyms("营销,在线营销");
-        
-        // 系统管理相关
-        addSynonyms("系统管理,管理系统,信息系统");
-        addSynonyms("运营管理,运营,管理");
-        addSynonyms("系统建设,建设,系统实施");
-        
-        // 数据治理相关
-        addSynonyms("数据治理,数据管理,数据规范");
-        addSynonyms("人工智能,AI,智能化");
+        // 从配置文件加载同义词组
+        List<String> synonymGroups = DataLoader.loadCommonSynonyms();
+
+        // 添加同义词组
+        for (String group : synonymGroups) {
+            addSynonyms(group);
+        }
     }
 
     /**

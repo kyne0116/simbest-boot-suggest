@@ -44,7 +44,7 @@ public class ChineseTokenizer {
 
             // 添加一些常用词
             addCommonWords();
-            
+
             isInitialized = true;
         } catch (IOException e) {
             System.err.println("加载词典失败: " + e.getMessage());
@@ -55,14 +55,10 @@ public class ChineseTokenizer {
      * 添加常用词
      */
     private static void addCommonWords() {
-        // 添加一些常用词，确保基本功能可用
-        String[] commonWords = {
-            "网络", "安全", "信息", "系统", "管理", "运营", "数据", "治理", "计费", "账务",
-            "结算", "短信", "营销", "平台", "维护", "规划", "政企", "业务", "支撑", "建设",
-            "需求", "协调", "管控", "智能", "资源", "自主", "可控", "人工智能", "研发", "项目",
-            "统计", "材料", "分管", "领导", "负责", "职责", "领域", "关键词", "匹配", "推荐"
-        };
-        
+        // 从配置文件加载常用词
+        List<String> commonWords = DataLoader.loadCommonWords();
+
+        // 添加到词典
         for (String word : commonWords) {
             dictionary.add(word);
         }
