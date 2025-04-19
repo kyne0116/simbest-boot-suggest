@@ -243,9 +243,9 @@ public class RecommendationService {
      * @param taskTitle 任务标题
      * @return 动态阈值
      */
-    private double calculateDynamicThreshold(String taskTitle) {
+    public double calculateDynamicThreshold(String taskTitle) {
         // 基础阈值
-        double baseThreshold = 0.1;
+        double baseThreshold = 0.01; // 降低阈值，使其更容易匹配
 
         // 根据标题长度调整
         // 标题越长，阈值可以适当降低

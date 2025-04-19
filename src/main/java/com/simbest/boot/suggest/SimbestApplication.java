@@ -1,5 +1,6 @@
 package com.simbest.boot.suggest;
 
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +9,8 @@ import com.simbest.boot.suggest.service.DomainService;
 import com.simbest.boot.suggest.service.LeaderService;
 import com.simbest.boot.suggest.service.OrganizationService;
 import com.simbest.boot.suggest.service.RecommendationService;
+import com.simbest.boot.suggest.util.ChineseTokenizer;
+import com.simbest.boot.suggest.util.SynonymManager;
 
 /**
  * Simbest Boot Application Main Class
@@ -52,5 +55,25 @@ public class SimbestApplication {
             LeaderService leaderService,
             DomainService domainService) {
         return new RecommendationService(organizationService, leaderService, domainService);
+    }
+
+    /**
+     * 应用启动时执行初始化
+     */
+    @Bean
+    public CommandLineRunner initializeData() {
+        return args -> {
+            System.out.println("======== 初始化推荐系统数据 ========");
+
+            // 初始化中文分词词典
+            System.out.println("正在初始化中文分词词典...");
+            ChineseTokenizer.initialize();
+
+            // 初始化同义词表
+            System.out.println("正在初始化同义词表...");
+            SynonymManager.initialize();
+
+            System.out.println("======== 初始化完成 ========");
+        };
     }
 }

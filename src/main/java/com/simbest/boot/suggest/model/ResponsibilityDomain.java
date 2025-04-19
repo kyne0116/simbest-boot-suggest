@@ -9,16 +9,24 @@ import java.util.Set;
 import com.simbest.boot.suggest.util.ChineseTokenizer;
 import com.simbest.boot.suggest.util.SynonymManager;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * 职责领域类
  * 表示一个特定的业务领域及其关键词和负责人
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ResponsibilityDomain {
     private String domainId; // 领域ID
     private String domainName; // 领域名称
     private String responsiblePerson; // 负责人
-    private List<String> keywords; // 关键词列表
+    private List<String> keywords = new ArrayList<>(); // 关键词列表
     private String description; // 领域描述
+    private String leaderAccount; // 负责人账号
 
     /**
      * 构造函数
@@ -33,7 +41,6 @@ public class ResponsibilityDomain {
         this.domainName = domainName;
         this.responsiblePerson = responsiblePerson;
         this.description = description;
-        this.keywords = new ArrayList<>();
     }
 
     /**
@@ -48,7 +55,6 @@ public class ResponsibilityDomain {
         this.domainName = domainName;
         this.responsiblePerson = responsiblePerson;
         this.description = description;
-        this.keywords = new ArrayList<>();
     }
 
     /**
@@ -67,96 +73,6 @@ public class ResponsibilityDomain {
      */
     public void addKeywords(List<String> keywords) {
         this.keywords.addAll(keywords);
-    }
-
-    /**
-     * 获取领域ID
-     *
-     * @return 领域ID
-     */
-    public String getDomainId() {
-        return domainId;
-    }
-
-    /**
-     * 设置领域ID
-     *
-     * @param domainId 领域ID
-     */
-    public void setDomainId(String domainId) {
-        this.domainId = domainId;
-    }
-
-    /**
-     * 获取领域名称
-     *
-     * @return 领域名称
-     */
-    public String getDomainName() {
-        return domainName;
-    }
-
-    /**
-     * 设置领域名称
-     *
-     * @param domainName 领域名称
-     */
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
-    }
-
-    /**
-     * 获取负责人
-     *
-     * @return 负责人
-     */
-    public String getResponsiblePerson() {
-        return responsiblePerson;
-    }
-
-    /**
-     * 设置负责人
-     *
-     * @param responsiblePerson 负责人
-     */
-    public void setResponsiblePerson(String responsiblePerson) {
-        this.responsiblePerson = responsiblePerson;
-    }
-
-    /**
-     * 获取关键词列表
-     *
-     * @return 关键词列表
-     */
-    public List<String> getKeywords() {
-        return keywords;
-    }
-
-    /**
-     * 设置关键词列表
-     *
-     * @param keywords 关键词列表
-     */
-    public void setKeywords(List<String> keywords) {
-        this.keywords = keywords;
-    }
-
-    /**
-     * 获取领域描述
-     *
-     * @return 领域描述
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * 设置领域描述
-     *
-     * @param description 领域描述
-     */
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     /**
@@ -208,9 +124,14 @@ public class ResponsibilityDomain {
                 matchedKeywordsCount++;
                 double matchWeight = keywordWeights.get(keyword);
 
+                // 如果是直接匹配，给予更高权重
+                if (directMatch) {
+                    matchWeight *= 2.0; // 增加直接匹配的权重
+                }
+
                 // 如果是精确匹配，给予更高权重
                 if (tokenMatch) {
-                    matchWeight *= 1.2;
+                    matchWeight *= 1.5; // 增加精确匹配的权重
                 }
 
                 // 如果是同义词匹配，给予较低权重
@@ -232,8 +153,8 @@ public class ResponsibilityDomain {
         }
         double weightedRatio = weightedMatchScore / totalWeight;
 
-        // 综合评分：60%基于匹配关键词数量，40%基于加权分数
-        return 0.6 * keywordCountRatio + 0.4 * weightedRatio;
+        // 综合评分：40%基于匹配关键词数量，60%基于加权分数
+        return 0.4 * keywordCountRatio + 0.6 * weightedRatio;
     }
 
     /**
@@ -288,14 +209,26 @@ public class ResponsibilityDomain {
         return matchedKeywords;
     }
 
-    @Override
-    public String toString() {
-        return "ResponsibilityDomain{" +
-                "domainId='" + domainId + '\'' +
-                ", domainName='" + domainName + '\'' +
-                ", responsiblePerson='" + responsiblePerson + '\'' +
-                ", keywords=" + keywords +
-                ", description='" + description + '\'' +
-                '}';
+    /**
+     * 获取负责人账号
+     *
+     * @return 负责人账号
+     */
+    public String getLeaderAccount() {
+        // 如果已设置leaderAccount，直接返回
+        if (leaderAccount != null && !leaderAccount.isEmpty()) {
+            return leaderAccount;
+        }
+
+        // 根据领域名称确定负责人账号
+        if (domainName.equals("网络安全")) {
+            return "xuhyun";
+        } else if (domainName.equals("计费账务")) {
+            return "zhangyk";
+        } else if (domainName.equals("系统管理") || domainName.equals("数据治理")) {
+            return "zhaobin";
+        }
+        return null;
     }
+
 }

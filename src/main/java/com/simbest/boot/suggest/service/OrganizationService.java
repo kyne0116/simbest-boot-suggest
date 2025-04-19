@@ -1,11 +1,12 @@
 package com.simbest.boot.suggest.service;
 
-import com.simbest.boot.suggest.model.Organization;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.simbest.boot.suggest.model.Organization;
+import com.simbest.boot.suggest.util.DataLoader;
 
 /**
  * 组织管理服务
@@ -13,7 +14,7 @@ import java.util.Map;
  */
 public class OrganizationService {
     private Map<String, Organization> organizations; // 组织ID到组织的映射
-    private Map<String, List<String>> leaderOrgMap;  // 领导账号到分管组织ID的映射
+    private Map<String, List<String>> leaderOrgMap; // 领导账号到分管组织ID的映射
 
     /**
      * 构造函数
@@ -28,30 +29,23 @@ public class OrganizationService {
      * 初始化组织数据
      */
     public void initOrganizations() {
-        // 创建组织
-        addOrganization(new Organization("org001", "信息安全部", "org000", "xuhyun"));
-        addOrganization(new Organization("org002", "计费账务部", "org000", "zhangyk"));
-        addOrganization(new Organization("org003", "系统管理部", "org000", "zhaobin"));
-        addOrganization(new Organization("org004", "数据治理部", "org000", "zhaobin"));
-        addOrganization(new Organization("org005", "网络安全部", "org001", "xuhyun"));
-        addOrganization(new Organization("org006", "信息安全室", "org001", "xuhyun"));
-        addOrganization(new Organization("org007", "计费系统部", "org002", "zhangyk"));
-        addOrganization(new Organization("org008", "账务结算部", "org002", "zhangyk"));
-        addOrganization(new Organization("org009", "短信营销部", "org002", "zhangyk"));
-        addOrganization(new Organization("org010", "系统建设部", "org003", "zhaobin"));
-        addOrganization(new Organization("org011", "系统运维部", "org003", "zhaobin"));
-        addOrganization(new Organization("org012", "数据分析部", "org004", "zhaobin"));
-        addOrganization(new Organization("org013", "AI研发部", "org004", "zhaobin"));
+        // 从资源文件加载组织数据
+        List<Organization> orgList = DataLoader.loadOrganizations();
+        for (Organization org : orgList) {
+            addOrganization(org);
+        }
+
+        System.out.println("已初始化 " + organizations.size() + " 个组织数据");
     }
 
     /**
      * 添加组织
-     * 
+     *
      * @param organization 组织对象
      */
     public void addOrganization(Organization organization) {
         organizations.put(organization.getOrgId(), organization);
-        
+
         // 更新领导到组织的映射
         String leaderAccount = organization.getLeaderAccount();
         if (leaderAccount != null && !leaderAccount.isEmpty()) {
@@ -61,7 +55,7 @@ public class OrganizationService {
 
     /**
      * 根据组织ID获取组织
-     * 
+     *
      * @param orgId 组织ID
      * @return 组织对象
      */
@@ -71,7 +65,7 @@ public class OrganizationService {
 
     /**
      * 根据组织ID获取分管领导账号
-     * 
+     *
      * @param orgId 组织ID
      * @return 分管领导账号
      */
@@ -82,7 +76,7 @@ public class OrganizationService {
 
     /**
      * 根据领导账号获取分管组织ID列表
-     * 
+     *
      * @param leaderAccount 领导账号
      * @return 分管组织ID列表
      */
@@ -92,7 +86,7 @@ public class OrganizationService {
 
     /**
      * 获取所有组织
-     * 
+     *
      * @return 所有组织的列表
      */
     public List<Organization> getAllOrganizations() {
@@ -101,7 +95,7 @@ public class OrganizationService {
 
     /**
      * 获取所有领导账号
-     * 
+     *
      * @return 所有领导账号的列表
      */
     public List<String> getAllLeaderAccounts() {

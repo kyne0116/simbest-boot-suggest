@@ -2,12 +2,12 @@ package com.simbest.boot.suggest.service;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.simbest.boot.suggest.model.ResponsibilityDomain;
+import com.simbest.boot.suggest.util.DataLoader;
 
 /**
  * 职责领域服务
@@ -30,56 +30,63 @@ public class DomainService {
      * 初始化职责领域数据
      */
     public void initDomains() {
-        // 创建职责领域
-        ResponsibilityDomain securityDomain = new ResponsibilityDomain(
-                "domain001",
-                "网络安全",
-                "许慧云",
-                "负责网络安全、信息安全、安全评估等相关工作");
-        securityDomain.addKeywords(Arrays.asList(
-                "安全", "网络安全", "信息安全", "网信安全", "互联网信安", "安全评估", "安全监督", "安全检查",
-                "网络安全专项行动", "春耕", "两会", "网信", "漏洞", "风险", "监督", "检查", "评估", "保密"));
+        // 从资源文件加载职责领域数据
+        List<ResponsibilityDomain> domainList = DataLoader.loadDomains();
+        for (ResponsibilityDomain domain : domainList) {
+            // 从领域名称确定负责人账号
+            String leaderAccount = null;
+            if (domain.getDomainName().equals("网络安全")) {
+                leaderAccount = "xuhyun";
+            } else if (domain.getDomainName().equals("计费账务")) {
+                leaderAccount = "zhangyk";
+            } else if (domain.getDomainName().equals("系统管理") || domain.getDomainName().equals("数据治理")) {
+                leaderAccount = "zhaobin";
+            }
 
-        ResponsibilityDomain billingDomain = new ResponsibilityDomain(
-                "domain002",
-                "计费账务",
-                "张耀华",
-                "负责计费、账务、系统规划、中台运营等相关工作");
-        billingDomain.addKeywords(Arrays.asList(
-                "计费", "账务", "结算", "短信", "营销", "在线营销", "短信平台", "端口", "扩展号码", "10086",
-                "账单", "计费系统", "账务系统", "账务调整", "计费账务", "软件维护", "平台维护", "系统维护",
-                "中台", "规划", "网间结算", "省内结算"));
+            addDomain(domain, leaderAccount);
+        }
 
-        ResponsibilityDomain systemDomain = new ResponsibilityDomain(
-                "domain003",
-                "系统管理",
-                "赵斌",
-                "负责运营管理、管理信息系统、政企业务等相关工作");
-        systemDomain.addKeywords(Arrays.asList(
-                "运营管理", "管理信息系统", "政企业务", "支撑", "系统建设", "支撑需求", "业务支撑", "政企",
-                "管理系统", "信息系统", "系统管理", "运营", "建设", "管理协调", "生产经营", "精益管理",
-                "协作配合", "管理工作", "反馈", "协调", "管理", "协作", "配合", "工作", "台账", "管控", "事项"));
-
-        ResponsibilityDomain dataDomain = new ResponsibilityDomain(
-                "domain004",
-                "数据治理",
-                "赵斌",
-                "负责数据治理、智能体、智算资源等相关工作");
-        dataDomain.addKeywords(Arrays.asList(
-                "数据治理", "智能体", "智算资源", "数智化", "自主可控", "AI", "人工智能", "灵犀", "数据", "治理",
-                "统计局", "研发", "科研档案", "年报", "统计", "研发项目", "佐证材料"));
-
-        // 添加职责领域
-        addDomain(securityDomain, "xuhyun");
-        addDomain(billingDomain, "zhangyk");
-        addDomain(systemDomain, "zhaobin");
-        addDomain(dataDomain, "zhaobin");
+        System.out.println("已初始化 " + domains.size() + " 个职责领域数据");
     }
 
-    /**
+    /*
+     * ResponsibilityDomain billingDomain = new ResponsibilityDomain(
+     * "domain002",
+     * "计费账务",
+     * "张耀华",
+     * "负责计费、账务、系统规划、中台运营等相关工作");billingDomain.addKeywords(Arrays.asList("计费","账务",
+     * "结算","短信","营销","在线营销","短信平台","端口","扩展号码","10086","账单","计费系统","账务系统","账务调整",
+     * "计费账务","软件维护","平台维护","系统维护","中台","规划","网间结算","省内结算"));
+     * 
+     * ResponsibilityDomain systemDomain = new ResponsibilityDomain(
+     * "domain003",
+     * "系统管理",
+     * "赵斌",
+     * "负责运营管理、管理信息系统、政企业务等相关工作");systemDomain.addKeywords(Arrays.asList("运营管理",
+     * "管理信息系统","政企业务","支撑","系统建设","支撑需求","业务支撑","政企","管理系统","信息系统","系统管理","运营","建设"
+     * ,"管理协调","生产经营","精益管理","协作配合","管理工作","反馈","协调","管理","协作","配合","工作","台账","管控",
+     * "事项"));
+     * 
+     * ResponsibilityDomain dataDomain = new ResponsibilityDomain(
+     * "domain004",
+     * "数据治理",
+     * "赵斌",
+     * "负责数据治理、智能体、智算资源等相关工作");dataDomain.addKeywords(Arrays.asList("数据治理","智能体",
+     * "智算资源","数智化","自主可控","AI","人工智能","灵犀","数据","治理","统计局","研发","科研档案","年报","统计",
+     * "研发项目","佐证材料"));
+     * 
+     * // 添加职责领域
+     * addDomain(securityDomain, "xuhyun");
+     * addDomain(billingDomain, "zhangyk");
+     * addDomain(systemDomain, "zhaobin");
+     * addDomain(dataDomain, "zhaobin");
+     * }
+     * 
+     * /**
      * 添加职责领域
      *
-     * @param domain        职责领域对象
+     * @param domain 职责领域对象
+     * 
      * @param leaderAccount 负责人账号
      */
     public void addDomain(ResponsibilityDomain domain, String leaderAccount) {
