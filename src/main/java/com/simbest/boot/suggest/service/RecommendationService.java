@@ -40,15 +40,19 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
+     * @param useOrg             是否使用基于组织关系的匹配，默认为true
      * @return 推荐结果
      */
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
-            String taskTitle) {
-        // 1. 基于组织关系的匹配
-        RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
-        if (orgResult != null) {
-            return orgResult;
+            String taskTitle,
+            boolean useOrg) {
+        // 1. 基于组织关系的匹配（如果useOrg为true）
+        if (useOrg) {
+            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
+            if (orgResult != null) {
+                return orgResult;
+            }
         }
 
         // 2. 基于职责领域的匹配
@@ -59,6 +63,21 @@ public class RecommendationService {
 
         // 3. 基于文本相似度的匹配
         return recommendLeaderBySimilarity(taskTitle);
+    }
+
+    /**
+     * 推荐领导账号（兼容旧版本接口）
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeader(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle) {
+        // 默认使用基于组织关系的匹配
+        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, true);
     }
 
     /**
@@ -113,8 +132,11 @@ public class RecommendationService {
         String domainId = bestMatch.getKey();
         double score = bestMatch.getValue();
 
+        // 计算动态阈值
+        double threshold = calculateDynamicThreshold(taskTitle);
+
         // 如果匹配分数低于阈值，则不推荐
-        if (score < 0.1) {
+        if (score < threshold) {
             return null;
         }
 
@@ -178,7 +200,7 @@ public class RecommendationService {
             for (String domainId : domainIds) {
                 ResponsibilityDomain domain = domainService.getDomainById(domainId);
                 if (domain != null) {
-                    double similarity = TextSimilarityUtil.calculateOverallSimilarity(
+                    double similarity = TextSimilarityUtil.calculateFinalSimilarity(
                             taskTitle, domain.getDescription());
                     totalScore += similarity;
                     count++;
@@ -195,8 +217,11 @@ public class RecommendationService {
             }
         }
 
+        // 计算动态阈值
+        double threshold = calculateDynamicThreshold(taskTitle);
+
         // 如果匹配分数低于阈值，则不推荐
-        if (bestScore < 0.1 || bestLeaderAccount == null) {
+        if (bestScore < threshold || bestLeaderAccount == null) {
             return null;
         }
 
@@ -212,22 +237,57 @@ public class RecommendationService {
     }
 
     /**
+     * 计算动态阈值
+     * 根据任务标题的特征动态调整阈值
+     *
+     * @param taskTitle 任务标题
+     * @return 动态阈值
+     */
+    private double calculateDynamicThreshold(String taskTitle) {
+        // 基础阈值
+        double baseThreshold = 0.1;
+
+        // 根据标题长度调整
+        // 标题越长，阈值可以适当降低
+        int length = taskTitle.length();
+        double lengthFactor = 1.0;
+        if (length > 20) {
+            lengthFactor = 0.9;
+        }
+        if (length > 40) {
+            lengthFactor = 0.8;
+        }
+
+        // 根据标题中特定词语调整
+        double contentFactor = 1.0;
+        if (taskTitle.contains("紧急") || taskTitle.contains("重要")) {
+            contentFactor = 0.8; // 降低阈值，提高匹配概率
+        }
+
+        return baseThreshold * lengthFactor * contentFactor;
+    }
+
+    /**
      * 获取所有可能的推荐结果
      *
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
+     * @param useOrg             是否使用基于组织关系的匹配，默认为true
      * @return 所有可能的推荐结果列表
      */
     public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
             String currentUserOrgId,
-            String taskTitle) {
+            String taskTitle,
+            boolean useOrg) {
         List<RecommendationResult> results = new ArrayList<>();
 
-        // 1. 基于组织关系的匹配
-        RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
-        if (orgResult != null) {
-            results.add(orgResult);
+        // 1. 基于组织关系的匹配（如果useOrg为true）
+        if (useOrg) {
+            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
+            if (orgResult != null) {
+                results.add(orgResult);
+            }
         }
 
         // 2. 基于职责领域的匹配
@@ -243,5 +303,20 @@ public class RecommendationService {
         }
 
         return results;
+    }
+
+    /**
+     * 获取所有可能的推荐结果（兼容旧版本接口）
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @return 所有可能的推荐结果列表
+     */
+    public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle) {
+        // 默认使用基于组织关系的匹配
+        return getAllPossibleRecommendations(currentUserAccount, currentUserOrgId, taskTitle, true);
     }
 }

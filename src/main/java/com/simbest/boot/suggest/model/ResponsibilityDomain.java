@@ -1,7 +1,13 @@
 package com.simbest.boot.suggest.model;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.simbest.boot.suggest.util.ChineseTokenizer;
+import com.simbest.boot.suggest.util.SynonymManager;
 
 /**
  * 职责领域类
@@ -165,24 +171,69 @@ public class ResponsibilityDomain {
             return 0.0;
         }
 
-        int matchCount = 0;
-        int matchedKeywordsCount = 0;
+        // 分词处理输入文本
+        List<String> textTokens = ChineseTokenizer.tokenize(text);
 
-        // 计算匹配的关键词数量和长度
+        // 初始化关键词权重
+        Map<String, Double> keywordWeights = new HashMap<>();
         for (String keyword : keywords) {
-            if (text.contains(keyword)) {
-                // 关键词越长，权重越大
-                matchCount += keyword.length();
+            // 关键词长度越长，权重越高
+            double weight = 1.0 + (0.1 * Math.min(keyword.length(), 10));
+            keywordWeights.put(keyword, weight);
+        }
+
+        int matchedKeywordsCount = 0;
+        double weightedMatchScore = 0.0;
+
+        // 计算匹配的关键词
+        for (String keyword : keywords) {
+            // 直接匹配
+            boolean directMatch = text.contains(keyword);
+
+            // 分词匹配
+            boolean tokenMatch = textTokens.contains(keyword);
+
+            // 同义词匹配
+            boolean synonymMatch = false;
+            Set<String> synonyms = SynonymManager.getSynonyms(keyword);
+            for (String token : textTokens) {
+                if (synonyms.contains(token)) {
+                    synonymMatch = true;
+                    break;
+                }
+            }
+
+            // 如果任一方式匹配成功
+            if (directMatch || tokenMatch || synonymMatch) {
                 matchedKeywordsCount++;
+                double matchWeight = keywordWeights.get(keyword);
+
+                // 如果是精确匹配，给予更高权重
+                if (tokenMatch) {
+                    matchWeight *= 1.2;
+                }
+
+                // 如果是同义词匹配，给予较低权重
+                if (synonymMatch && !directMatch && !tokenMatch) {
+                    matchWeight *= 0.8;
+                }
+
+                weightedMatchScore += matchWeight;
             }
         }
 
-        // 计算匹配度：结合匹配关键词数量比例和长度比例
+        // 计算匹配度
         double keywordCountRatio = (double) matchedKeywordsCount / keywords.size();
-        double keywordLengthRatio = (double) matchCount / Math.min(text.length(), 50); // 限制文本长度影响
 
-        // 综合评分：70%基于匹配关键词数量，30%基于匹配关键词长度
-        return 0.7 * keywordCountRatio + 0.3 * keywordLengthRatio;
+        // 计算加权分数
+        double totalWeight = 0.0;
+        for (double weight : keywordWeights.values()) {
+            totalWeight += weight;
+        }
+        double weightedRatio = weightedMatchScore / totalWeight;
+
+        // 综合评分：60%基于匹配关键词数量，40%基于加权分数
+        return 0.6 * keywordCountRatio + 0.4 * weightedRatio;
     }
 
     /**
@@ -194,9 +245,43 @@ public class ResponsibilityDomain {
     public List<String> getMatchedKeywords(String text) {
         List<String> matchedKeywords = new ArrayList<>();
 
+        if (text == null || text.isEmpty()) {
+            return matchedKeywords;
+        }
+
+        // 分词处理输入文本
+        List<String> textTokens = ChineseTokenizer.tokenize(text);
+
         for (String keyword : keywords) {
-            if (text.contains(keyword)) {
+            // 直接匹配
+            boolean directMatch = text.contains(keyword);
+
+            // 分词匹配
+            boolean tokenMatch = textTokens.contains(keyword);
+
+            // 同义词匹配
+            boolean synonymMatch = false;
+            Set<String> synonyms = SynonymManager.getSynonyms(keyword);
+            for (String token : textTokens) {
+                if (synonyms.contains(token)) {
+                    synonymMatch = true;
+                    break;
+                }
+            }
+
+            // 如果任一方式匹配成功
+            if (directMatch || tokenMatch || synonymMatch) {
                 matchedKeywords.add(keyword);
+
+                // 如果是同义词匹配，添加匹配的同义词信息
+                if (synonymMatch && !directMatch && !tokenMatch) {
+                    for (String token : textTokens) {
+                        if (synonyms.contains(token)) {
+                            matchedKeywords.add(keyword + "(同义词: " + token + ")");
+                            break;
+                        }
+                    }
+                }
             }
         }
 
