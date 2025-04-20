@@ -1,5 +1,7 @@
 package com.simbest.boot.suggest.controller;
 
+import static com.simbest.boot.suggest.model.JsonResponse.MSG_SUCCESS;
+
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,8 +30,6 @@ import com.simbest.boot.suggest.service.RecommendationService;
 import com.simbest.boot.suggest.util.ChineseTokenizer;
 
 import lombok.extern.slf4j.Slf4j;
-
-import static com.simbest.boot.suggest.model.JsonResponse.MSG_SUCCESS;
 
 /**
  * 领导推荐控制器（POST方法）
@@ -69,7 +69,7 @@ public class RecommendationController {
      * @return 推荐结果
      */
     @PostMapping("/recommend")
-    public JsonResponse<RecommendationResult> recommendLeaderPost(@RequestBody RecommendationRequest request) {
+    public JsonResponse<RecommendationResult> recommend(@RequestBody RecommendationRequest request) {
         // 参数校验
         if (request.getUserAccount() == null || request.getUserAccount().isEmpty()) {
             return JsonResponse.fail("用户账号不能为空");

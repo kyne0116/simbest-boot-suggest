@@ -1,8 +1,15 @@
 package com.simbest.boot.suggest;
 
+import lombok.SneakyThrows;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.context.WebServerApplicationContext;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.boot.web.server.WebServer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 
 import com.simbest.boot.suggest.service.DomainService;
@@ -14,16 +21,47 @@ import com.simbest.boot.suggest.util.DataLoader;
 import com.simbest.boot.suggest.util.SynonymManager;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
+import org.springframework.util.StringUtils;
+
+import java.net.InetAddress;
 
 /**
  * Simbest Boot Application Main Class
  */
 @SpringBootApplication
 @Slf4j
-public class SimbestApplication {
+public class SimbestApplication implements ApplicationListener<WebServerInitializedEvent>  {
+
+    @Autowired
+    private ApplicationContext appContext;
 
     public static void main(String[] args) {
         SpringApplication.run(SimbestApplication.class, args);
+    }
+
+    @SneakyThrows
+    @Override
+    public void onApplicationEvent(WebServerInitializedEvent event) {
+        String[] activeProfiles = appContext.getEnvironment().getActiveProfiles();
+        for (String profile : activeProfiles) {
+            log.warn("加载环境信息为: 【{}】", profile);
+            log.warn("Application started successfully, lets go and have fun......");
+        }
+
+        WebServer server = event.getWebServer();
+        WebServerApplicationContext context = event.getApplicationContext();
+        Environment env = context.getEnvironment();
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        int port = server.getPort();
+        String contextPath = env.getProperty("server.servlet.context-path");
+        contextPath = StringUtils.isEmpty(contextPath) ? "":contextPath;
+        log.warn("\n---------------------------------------------------------\n" +
+                "\t应用已成功启动，运行地址如下：:\n" +
+                "\tLocal:\t\thttp://localhost:{}{}" +
+                "\n\tExternal:\thttp://{}:{}{}" +
+                "\nAplication started successfully, lets go and have fun......" +
+                "\n---------------------------------------------------------\n", port, contextPath, ip, port, contextPath);
     }
 
     /**
