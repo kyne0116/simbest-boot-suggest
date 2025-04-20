@@ -84,7 +84,7 @@ public class RecommendationService {
                             if (bestDeputyLeaderAccount != null) {
                                 Leader deputyLeader = leaderService.getLeaderByAccount(bestDeputyLeaderAccount);
                                 if (deputyLeader != null) {
-                                    String reason = "向下指派：当前用户是" + org.getOrgName() +
+                                    String reason = "【规则1-基于组织关系匹配】向下指派：当前用户是" + org.getOrgName() +
                                             "的主管领导，推荐该组织的分管领导，负责与任务相关的业务领域";
                                     result = new RecommendationResult(deputyLeader.getAccount(),
                                             deputyLeader.getName(), reason, 0.9);
@@ -98,7 +98,7 @@ public class RecommendationService {
                         if (superiorLeaderAccount != null && !superiorLeaderAccount.isEmpty()) {
                             Leader superiorLeader = leaderService.getLeaderByAccount(superiorLeaderAccount);
                             if (superiorLeader != null) {
-                                String reason = "向上请示：直接推荐" + org.getOrgName() + "的上级领导";
+                                String reason = "【规则1-基于组织关系匹配】向上请示：直接推荐" + org.getOrgName() + "的上级领导";
                                 result = new RecommendationResult(superiorLeader.getAccount(),
                                         superiorLeader.getName(), reason, 1.0);
                             }
@@ -117,7 +117,7 @@ public class RecommendationService {
                                 if (!deputyAccount.equals(currentUserAccount)) {
                                     Leader deputyLeader = leaderService.getLeaderByAccount(deputyAccount);
                                     if (deputyLeader != null) {
-                                        String reason = "同级协办：当前用户是" + org.getOrgName() +
+                                        String reason = "【规则1-基于组织关系匹配】同级协办：当前用户是" + org.getOrgName() +
                                                 "的分管领导，推荐该组织的其他分管领导";
                                         result = new RecommendationResult(deputyAccount,
                                                 deputyLeader.getName(), reason, 0.8);
@@ -133,7 +133,7 @@ public class RecommendationService {
                                     !mainLeaderAccount.equals(currentUserAccount)) {
                                 Leader mainLeader = leaderService.getLeaderByAccount(mainLeaderAccount);
                                 if (mainLeader != null) {
-                                    String reason = "同级协办：推荐" + org.getOrgName() + "的主管领导";
+                                    String reason = "【规则1-基于组织关系匹配】同级协办：推荐" + org.getOrgName() + "的主管领导";
                                     result = new RecommendationResult(mainLeader.getAccount(),
                                             mainLeader.getName(), reason, 0.7);
                                 }
@@ -243,7 +243,7 @@ public class RecommendationService {
             if (bestDeputyLeaderAccount != null) {
                 Leader deputyLeader = leaderService.getLeaderByAccount(bestDeputyLeaderAccount);
                 if (deputyLeader != null) {
-                    String reason = "基于组织关系和任务内容匹配：当前用户是" + org.getOrgName() +
+                    String reason = "【规则1-基于组织关系匹配】当前用户是" + org.getOrgName() +
                             "的主管领导，推荐该组织的分管领导，负责与任务相关的业务领域";
                     return new RecommendationResult(deputyLeader.getAccount(),
                             deputyLeader.getName(), reason, 0.9);
@@ -255,7 +255,7 @@ public class RecommendationService {
             if (superiorLeaderAccount != null && !superiorLeaderAccount.isEmpty()) {
                 Leader superiorLeader = leaderService.getLeaderByAccount(superiorLeaderAccount);
                 if (superiorLeader != null) {
-                    String reason = "基于组织关系匹配：当前用户是" + org.getOrgName() +
+                    String reason = "【规则1-基于组织关系匹配】当前用户是" + org.getOrgName() +
                             "的主管领导，推荐该组织的上级领导";
                     return new RecommendationResult(superiorLeader.getAccount(),
                             superiorLeader.getName(), reason, 0.8);
@@ -273,7 +273,7 @@ public class RecommendationService {
             if (mainLeaderAccount != null && !mainLeaderAccount.isEmpty()) {
                 Leader mainLeader = leaderService.getLeaderByAccount(mainLeaderAccount);
                 if (mainLeader != null) {
-                    String reason = "基于组织关系匹配：当前用户是" + org.getOrgName() +
+                    String reason = "【规则1-基于组织关系匹配】当前用户是" + org.getOrgName() +
                             "的分管领导，推荐该组织的主管领导";
                     return new RecommendationResult(mainLeader.getAccount(),
                             mainLeader.getName(), reason, 1.0);
@@ -287,7 +287,7 @@ public class RecommendationService {
         if (mainLeaderAccount != null && !mainLeaderAccount.isEmpty()) {
             Leader mainLeader = leaderService.getLeaderByAccount(mainLeaderAccount);
             if (mainLeader != null) {
-                String reason = "基于组织关系匹配：推荐" + org.getOrgName() + "的主管领导";
+                String reason = "【规则1-基于组织关系匹配】推荐" + org.getOrgName() + "的主管领导";
                 return new RecommendationResult(mainLeader.getAccount(),
                         mainLeader.getName(), reason, 1.0);
             }
@@ -389,7 +389,7 @@ public class RecommendationService {
         String keywordsStr = String.join("、", matchedKeywords);
 
         // 创建推荐结果
-        String reason = "基于职责领域匹配：该领导负责 " + domain.getDomainName() + " 领域，匹配关键词：" + keywordsStr;
+        String reason = "【规则2-基于职责领域匹配】该领导负责 " + domain.getDomainName() + " 领域，匹配关键词：" + keywordsStr;
         return new RecommendationResult(leaderAccount, leader.getName(), reason, score);
     }
 
@@ -468,7 +468,7 @@ public class RecommendationService {
         }
 
         // 创建推荐结果
-        String reason = "基于文本相似度匹配：该领导的职责领域与任务标题具有较高的相似度";
+        String reason = "【规则3-基于文本相似度匹配】该领导的职责领域与任务标题具有较高的相似度";
         return new RecommendationResult(bestLeaderAccount, leader.getName(), reason, bestScore);
     }
 
