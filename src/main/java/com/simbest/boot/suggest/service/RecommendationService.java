@@ -12,10 +12,13 @@ import com.simbest.boot.suggest.model.TextSimilarityUtil;
 import com.simbest.boot.suggest.model.WorkflowDirection;
 import com.simbest.boot.suggest.util.DataLoader;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 推荐服务
  * 提供领导推荐相关的操作
  */
+@Slf4j
 public class RecommendationService {
     private OrganizationService organizationService;
     private LeaderService leaderService;
@@ -60,11 +63,11 @@ public class RecommendationService {
             List<Organization> userOrgs = organizationService.getOrganizationsAsMainLeader(currentUserAccount);
             if (!userOrgs.isEmpty()) {
                 currentUserOrgId = userOrgs.get(0).getOrgId();
-                System.out.println("根据用户账号" + currentUserAccount + "找到组织ID: " + currentUserOrgId);
+                log.debug("根据用户账号 {} 找到组织ID: {}", currentUserAccount, currentUserOrgId);
             }
         }
 
-        System.out.println("工作流方向: " + workflowDirection);
+        log.debug("工作流方向: {}", workflowDirection);
 
         // 基于工作流方向进行推荐
         RecommendationResult result = null;
@@ -149,9 +152,10 @@ public class RecommendationService {
         if (result != null) {
             // 检查是否在候选账号列表中
             if (isInCandidateAccounts(result.getLeaderAccount(), candidateAccounts)) {
+                log.debug("【匹配成功】基于组织关系匹配成功，推荐领导: {}", result.getLeaderAccount());
                 return result;
             } else {
-                System.out.println("基于组织关系的推荐结果不在候选账号列表中，继续匹配");
+                log.debug("【匹配失败】基于组织关系的推荐结果 {} 不在候选账号列表中，继续匹配", result.getLeaderAccount());
             }
         }
 
@@ -160,9 +164,10 @@ public class RecommendationService {
         if (domainResult != null) {
             // 检查是否在候选账号列表中
             if (isInCandidateAccounts(domainResult.getLeaderAccount(), candidateAccounts)) {
+                log.debug("【匹配成功】基于职责领域匹配成功，推荐领导: {}", domainResult.getLeaderAccount());
                 return domainResult;
             } else {
-                System.out.println("基于职责领域的推荐结果不在候选账号列表中，继续匹配");
+                log.debug("【匹配失败】基于职责领域的推荐结果 {} 不在候选账号列表中，继续匹配", domainResult.getLeaderAccount());
             }
         }
 
@@ -171,9 +176,11 @@ public class RecommendationService {
         if (similarityResult != null) {
             // 检查是否在候选账号列表中
             if (isInCandidateAccounts(similarityResult.getLeaderAccount(), candidateAccounts)) {
+                log.debug("【匹配成功】基于文本相似度匹配成功，推荐领导: {}", similarityResult.getLeaderAccount());
                 return similarityResult;
             } else {
-                System.out.println("基于文本相似度的推荐结果不在候选账号列表中");
+                log.debug("【匹配失败】基于文本相似度的推荐结果 {} 不在候选账号列表中", similarityResult.getLeaderAccount());
+                log.debug("所有推荐结果都不在候选账号列表中，返回null");
                 return null; // 所有推荐结果都不在候选账号列表中，返回null
             }
         }
@@ -344,6 +351,7 @@ public class RecommendationService {
 
         // 如果匹配分数低于阈值，则不推荐
         if (score < threshold) {
+            log.debug("【匹配失败】职责领域匹配分数 {} 低于阈值 {}, 不推荐", score, threshold);
             return null;
         }
 
@@ -460,6 +468,7 @@ public class RecommendationService {
 
         // 如果匹配分数低于阈值，则不推荐
         if (bestScore < threshold || bestLeaderAccount == null) {
+            log.debug("【匹配失败】文本相似度匹配分数 {} 低于阈值 {} 或未找到最佳领导账号, 不推荐", bestScore, threshold);
             return null;
         }
 
@@ -547,16 +556,19 @@ public class RecommendationService {
     private boolean isInCandidateAccounts(String account, String[] candidateAccounts) {
         // 如果候选账号列表为空，则不限制
         if (candidateAccounts == null || candidateAccounts.length == 0) {
+            log.debug("候选账号列表为空，不限制推荐结果");
             return true;
         }
 
         // 检查账号是否在候选账号列表中
         for (String candidateAccount : candidateAccounts) {
             if (candidateAccount.equals(account)) {
+                log.debug("账号 {} 在候选账号列表中", account);
                 return true;
             }
         }
 
+        log.debug("账号 {} 不在候选账号列表中", account);
         return false;
     }
 

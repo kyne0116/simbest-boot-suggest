@@ -28,6 +28,7 @@ import com.simbest.boot.suggest.service.LeaderService;
 import com.simbest.boot.suggest.service.OrganizationService;
 import com.simbest.boot.suggest.service.RecommendationService;
 import com.simbest.boot.suggest.util.ChineseTokenizer;
+import com.simbest.boot.suggest.util.JsonUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,47 +85,60 @@ public class RecommendationController {
         // 设置默认值
         boolean useOrg = request.getUseOrg() != null ? request.getUseOrg() : true;
 
-        log.info("=== 推荐请求(POST) ===");
-        log.info("用户账号: {}", request.getUserAccount());
-        log.info("组织ID: {}", (request.getOrgId() != null ? request.getOrgId() : "未提供"));
-        log.info("任务标题: {}", request.getTaskTitle());
-        log.info("工作流方向: {}", request.getWorkflowDirection());
-        log.info("使用组织关系: {}", useOrg);
-        log.info("候选账号列表: {}",
-                (request.getCandidateAccounts() != null ? String.join(", ", request.getCandidateAccounts()) : "未提供"));
+        // 创建请求参数Map用于日志记录
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("userAccount", request.getUserAccount());
+        requestMap.put("orgId", request.getOrgId() != null ? request.getOrgId() : "未提供");
+        requestMap.put("taskTitle", request.getTaskTitle());
+        requestMap.put("workflowDirection", request.getWorkflowDirection());
+        requestMap.put("useOrg", useOrg);
+        requestMap.put("candidateAccounts",
+                request.getCandidateAccounts() != null ? request.getCandidateAccounts() : "未提供");
 
-        // 检查数据加载情况
-        log.debug("组织数量: {}", organizationService.getAllOrganizations().size());
-        log.debug("领导数量: {}", leaderService.getAllLeaders().size());
-        log.debug("职责领域数量: {}", domainService.getAllDomains().size());
+        // 使用新格式记录请求参数
+        String timestamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        log.info("【{}-getRecommendation-START-{}】", request.getUserAccount(), timestamp);
+        log.info("请求参数信息\n{}", JsonUtil.toJsonPretty(requestMap));
 
-        // 检查关键词匹配情况
-        log.debug("关键词匹配情况:");
-        for (ResponsibilityDomain domain : domainService.getAllDomains()) {
-            double score = domain.calculateMatchScore(request.getTaskTitle());
-            List<String> matchedKeywords = domain.getMatchedKeywords(request.getTaskTitle());
-            log.debug("{} - 匹配分数: {}, 匹配关键词: {}", domain.getDomainName(), score, matchedKeywords);
+        // 检查数据加载情况 - 使用DEBUG级别记录详细信息
+        if (log.isDebugEnabled()) {
+            log.debug("【系统状态】");
+            log.debug("组织数量: {}", organizationService.getAllOrganizations().size());
+            log.debug("领导数量: {}", leaderService.getAllLeaders().size());
+            log.debug("职责领域数量: {}", domainService.getAllDomains().size());
 
-            // 打印关键词列表
-            log.debug("  关键词列表: {}", domain.getKeywords());
+            // 检查关键词匹配情况
+            log.debug("\n【关键词匹配详情】");
+            for (ResponsibilityDomain domain : domainService.getAllDomains()) {
+                double score = domain.calculateMatchScore(request.getTaskTitle());
+                List<String> matchedKeywords = domain.getMatchedKeywords(request.getTaskTitle());
+                log.debug("{} - 匹配分数: {}, 匹配关键词: {}", domain.getDomainName(), score, matchedKeywords);
 
-            // 检查分词结果
-            List<String> textTokens = ChineseTokenizer.tokenize(request.getTaskTitle());
-            log.debug("  分词结果: {}", textTokens);
+                // 打印关键词列表
+                log.debug("  关键词列表: {}", domain.getKeywords());
 
-            // 检查直接匹配
-            for (String keyword : domain.getKeywords()) {
-                boolean directMatch = request.getTaskTitle().contains(keyword);
-                if (directMatch) {
-                    log.debug("  直接匹配关键词: {}", keyword);
+                // 检查分词结果
+                List<String> textTokens = ChineseTokenizer.tokenize(request.getTaskTitle());
+                log.debug("  分词结果: {}", textTokens);
+
+                // 检查直接匹配
+                for (String keyword : domain.getKeywords()) {
+                    boolean directMatch = request.getTaskTitle().contains(keyword);
+                    if (directMatch) {
+                        log.debug("  直接匹配关键词: {}", keyword);
+                    }
                 }
             }
+
+            // 检查动态阈值
+            double threshold = recommendationService.calculateDynamicThreshold(request.getTaskTitle());
+            log.debug("动态阈值: {}", threshold);
         }
 
-        // 检查动态阈值
-        double threshold = recommendationService.calculateDynamicThreshold(request.getTaskTitle());
-        log.debug("动态阈值: {}", threshold);
+        // 记录开始处理时间
+        long startTime = System.currentTimeMillis();
 
+        // 调用推荐服务
         RecommendationResult result = recommendationService.recommendLeader(
                 request.getUserAccount(),
                 request.getOrgId() != null ? request.getOrgId() : "",
@@ -133,16 +147,42 @@ public class RecommendationController {
                 useOrg,
                 request.getCandidateAccounts());
 
+        // 计算处理时间
+        long processingTime = System.currentTimeMillis() - startTime;
+
+        // 不再需要创建输入输出对照结构，因为我们已经在开始时打印了请求参数
+
+        // 打印请求结果
         if (result != null) {
             // 生成详细的AI分析报告
             String detailedReport = result.generateDetailedAIReport();
-            log.info("推荐结果: {}", result);
-            log.info("详细AI分析报告: {}", detailedReport);
+
+            // 创建结果Map用于日志记录
+            Map<String, Object> resultMap = new HashMap<>();
+            resultMap.put("leaderAccount", result.getLeaderAccount());
+            resultMap.put("leaderName", result.getLeaderName());
+            resultMap.put("score", result.getScore());
+            resultMap.put("confidenceLevel", result.getConfidenceLevel());
+            resultMap.put("recommendationType", result.getRecommendationType());
+            resultMap.put("reason", result.getReason());
+            resultMap.put("aiMetrics", result.getAiMetrics());
+            resultMap.put("processingTimeMs", processingTime);
+
+            // 打印请求结果信息
+            log.info("请求结果信息\n{}", JsonUtil.toJsonPretty(resultMap));
+
+            // 如果启用了DEBUG日志，打印详细的AI分析报告
+            if (log.isDebugEnabled()) {
+                log.debug("详细AI分析报告\n{}", detailedReport);
+            }
         } else {
-            log.info("无推荐结果");
+            // 打印无推荐结果的信息
+            log.info("请求结果信息: 无匹配的推荐结果, 处理时间: {}毫秒", processingTime);
         }
 
-        log.info("=== 推荐结束 ===");
+        // 使用新格式记录请求结束
+        String endTimestamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        log.info("【{}-getRecommendation-END-{}】", request.getUserAccount(), endTimestamp);
         return JsonResponse.success(result, MSG_SUCCESS);
     }
 
