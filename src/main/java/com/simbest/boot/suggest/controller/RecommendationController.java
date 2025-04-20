@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.simbest.boot.suggest.model.JsonResponse;
 import com.simbest.boot.suggest.model.Leader;
 import com.simbest.boot.suggest.model.Organization;
 import com.simbest.boot.suggest.model.RecommendationResult;
@@ -52,7 +53,7 @@ public class RecommendationController {
      * @return 推荐结果
      */
     @GetMapping("/recommend")
-    public RecommendationResult recommendLeader(
+    public JsonResponse<RecommendationResult> recommendLeader(
             @RequestParam(required = true) String userAccount,
             @RequestParam(required = false) String orgId,
             @RequestParam String taskTitle,
@@ -102,29 +103,7 @@ public class RecommendationController {
                 useOrg);
         System.out.println("\n推荐结果: " + (result != null ? result : "无推荐结果"));
         System.out.println("\n=== 推荐结束 ===\n\n");
-        return result;
-    }
-
-    /**
-     * 获取所有可能的推荐结果
-     *
-     * @param userAccount 当前办理人账号（必填）
-     * @param orgId       当前办理人组织ID（可选）
-     * @param taskTitle   任务标题（必填）
-     * @param useOrg      是否使用组织关系（可选，默认为true）
-     * @return 所有可能的推荐结果列表
-     */
-    @GetMapping("/recommend/all")
-    public List<RecommendationResult> getAllRecommendations(
-            @RequestParam(required = true) String userAccount,
-            @RequestParam(required = false) String orgId,
-            @RequestParam String taskTitle,
-            @RequestParam(required = false, defaultValue = "true") boolean useOrg) {
-        return recommendationService.getAllPossibleRecommendations(
-                userAccount,
-                orgId != null ? orgId : "",
-                taskTitle,
-                useOrg);
+        return JsonResponse.success(result, taskTitle + "的推荐结果");
     }
 
     /**

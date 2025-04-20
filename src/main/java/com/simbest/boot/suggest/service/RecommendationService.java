@@ -1,7 +1,6 @@
 package com.simbest.boot.suggest.service;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -413,71 +412,6 @@ public class RecommendationService {
         }
 
         return baseThreshold * lengthFactor * contentFactor;
-    }
-
-    /**
-     * 获取所有可能的推荐结果
-     *
-     * @param currentUserAccount 当前办理人账号
-     * @param currentUserOrgId   当前办理人组织ID
-     * @param taskTitle          任务标题
-     * @param useOrg             是否使用组织关系
-     * @return 所有可能的推荐结果列表
-     */
-    public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
-            String currentUserOrgId,
-            String taskTitle,
-            boolean useOrg) {
-        List<RecommendationResult> results = new ArrayList<>();
-
-        // 如果没有传入orgId，但传入了userAccount，尝试根据userAccount查找组织
-        if (useOrg && (currentUserOrgId == null || currentUserOrgId.isEmpty()) &&
-                currentUserAccount != null && !currentUserAccount.isEmpty()) {
-            // 查找用户作为主管的组织
-            List<Organization> userOrgs = organizationService.getOrganizationsAsMainLeader(currentUserAccount);
-            if (!userOrgs.isEmpty()) {
-                currentUserOrgId = userOrgs.get(0).getOrgId();
-                System.out.println("根据用户账号" + currentUserAccount + "找到组织ID: " + currentUserOrgId);
-            }
-        }
-
-        // 1. 基于组织关系的匹配（如果useOrg为true且orgId有值时）
-        if (useOrg && currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
-            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId, currentUserAccount,
-                    taskTitle);
-            if (orgResult != null) {
-                results.add(orgResult);
-            }
-        }
-
-        // 2. 基于职责领域的匹配
-        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle, currentUserAccount);
-        if (domainResult != null) {
-            results.add(domainResult);
-        }
-
-        // 3. 基于文本相似度的匹配
-        RecommendationResult similarityResult = recommendLeaderBySimilarity(taskTitle, currentUserAccount);
-        if (similarityResult != null) {
-            results.add(similarityResult);
-        }
-
-        return results;
-    }
-
-    /**
-     * 获取所有可能的推荐结果（兼容旧版本接口）
-     *
-     * @param currentUserAccount 当前办理人账号
-     * @param currentUserOrgId   当前办理人组织ID
-     * @param taskTitle          任务标题
-     * @return 所有可能的推荐结果列表
-     */
-    public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
-            String currentUserOrgId,
-            String taskTitle) {
-        // 默认使用组织关系
-        return getAllPossibleRecommendations(currentUserAccount, currentUserOrgId, taskTitle, true);
     }
 
 }

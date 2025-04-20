@@ -119,19 +119,10 @@ public class LeaderRecommendationDemo {
                     currentUserAccount, currentUserOrgId, taskTitle);
 
             // 显示推荐结果
-            System.out.println(result);
-
-            // 显示所有可能的推荐结果
-            System.out.println("\n=== 所有可能的推荐结果 ===");
-            List<RecommendationResult> allResults = recommendationService.getAllPossibleRecommendations(
-                    currentUserAccount, currentUserOrgId, taskTitle);
-
-            if (allResults.isEmpty()) {
-                System.out.println("没有找到可能的推荐结果");
+            if (result != null) {
+                System.out.println(result);
             } else {
-                for (int i = 0; i < allResults.size(); i++) {
-                    System.out.println((i + 1) + ". " + allResults.get(i));
-                }
+                System.out.println("没有找到推荐结果");
             }
 
             System.out.println("\n");
