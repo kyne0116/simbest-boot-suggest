@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  * 提供领导推荐相关的REST API，使用POST方法和JSON请求体
  */
 @RestController
-@RequestMapping("/suggest")
+@RequestMapping("/recommend")
 @Slf4j
 public class RecommendationController {
 
@@ -68,8 +68,8 @@ public class RecommendationController {
      *                - candidateAccounts: 候选账号列表（可选），如果提供，则推荐结果必须在此列表中
      * @return 推荐结果
      */
-    @PostMapping("/recommend")
-    public JsonResponse<RecommendationResult> recommend(@RequestBody RecommendationRequest request) {
+    @PostMapping("/getRecommendation")
+    public JsonResponse<RecommendationResult> getRecommendation(@RequestBody RecommendationRequest request) {
         // 参数校验
         if (request.getUserAccount() == null || request.getUserAccount().isEmpty()) {
             return JsonResponse.fail("用户账号不能为空");
