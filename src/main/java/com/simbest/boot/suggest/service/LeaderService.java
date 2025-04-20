@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.simbest.boot.suggest.model.Leader;
+import com.simbest.boot.suggest.model.ResponsibilityDomain;
 import com.simbest.boot.suggest.util.DataLoader;
 
 /**
@@ -14,6 +15,7 @@ import com.simbest.boot.suggest.util.DataLoader;
  */
 public class LeaderService {
     private Map<String, Leader> leaders; // 领导账号到领导的映射
+    private DomainService domainService; // 职责领域服务
 
     /**
      * 构造函数
@@ -21,6 +23,15 @@ public class LeaderService {
     public LeaderService() {
         this.leaders = new HashMap<>();
         initLeaders();
+    }
+
+    /**
+     * 设置职责领域服务
+     *
+     * @param domainService 职责领域服务
+     */
+    public void setDomainService(DomainService domainService) {
+        this.domainService = domainService;
     }
 
     /**
@@ -71,5 +82,35 @@ public class LeaderService {
      */
     public List<String> getAllLeaderAccounts() {
         return new ArrayList<>(leaders.keySet());
+    }
+
+    /**
+     * 计算领导的职责领域与任务标题的匹配度
+     *
+     * @param leader    领导对象
+     * @param taskTitle 任务标题
+     * @return 匹配度分数
+     */
+    public double calculateDomainMatchScore(Leader leader, String taskTitle) {
+        if (leader == null || taskTitle == null || taskTitle.isEmpty() ||
+                leader.getDomainIds() == null || leader.getDomainIds().isEmpty() ||
+                domainService == null) {
+            return 0.0;
+        }
+
+        double totalScore = 0.0;
+        int count = 0;
+
+        for (String domainId : leader.getDomainIds()) {
+            ResponsibilityDomain domain = domainService.getDomainById(domainId);
+            if (domain != null) {
+                double score = domain.calculateMatchScore(taskTitle);
+                totalScore += score;
+                count++;
+            }
+        }
+
+        // 计算平均匹配度
+        return count > 0 ? totalScore / count : 0.0;
     }
 }

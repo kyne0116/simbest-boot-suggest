@@ -1,20 +1,42 @@
 [
   {
-    "account": "zhangyaohua1",
-    "name": "张耀华",
-    "orgIds": ["1163561335827320832", "1163561336464855040", "1163561336674570240"],
-    "domainIds": ["domain002"]
+    "account": "ceo001",
+    "name": "总经理",
+    "domainIds": []
   },
   {
-    "account": "zhaobin1",
-    "name": "赵斌",
-    "orgIds": ["1163561335495970816", "1163561336007675904", "1163561336179642368"],
-    "domainIds": ["domain003", "domain004"]
+    "account": "zhangxinpeng",
+    "name": "张新鹏",
+    "domainIds": []
+  },
+  {
+    "account": "zhangyaohua1",
+    "name": "张耀华",
+    "domainIds": ["domain002"]
   },
   {
     "account": "xuhuiyun",
     "name": "许慧云",
-    "orgIds": ["1163561336863313920"],
     "domainIds": ["domain001"]
+  },
+  {
+    "account": "zhaobin1",
+    "name": "赵斌",
+    "domainIds": ["domain003", "domain004"]
+  },
+  {
+    "account": "baiyu",
+    "name": "白玉",
+    "domainIds": []
+  },
+  {
+    "account": "zhangyifei",
+    "name": "张一飞",
+    "domainIds": ["domain005"]
+  },
+  {
+    "account": "zhaowanli",
+    "name": "赵万里",
+    "domainIds": ["domain006"]
   }
 ]

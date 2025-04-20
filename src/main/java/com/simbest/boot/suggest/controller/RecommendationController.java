@@ -45,21 +45,23 @@ public class RecommendationController {
     /**
      * 推荐领导
      *
-     * @param userAccount 当前办理人账号（可选）
+     * @param userAccount 当前办理人账号（必填）
      * @param orgId       当前办理人组织ID（可选）
-     * @param taskTitle   任务标题
+     * @param taskTitle   任务标题（必填）
+     * @param useOrg      是否使用组织关系（可选，默认为true）
      * @return 推荐结果
      */
     @GetMapping("/recommend")
     public RecommendationResult recommendLeader(
-            @RequestParam(required = false) String userAccount,
+            @RequestParam(required = true) String userAccount,
             @RequestParam(required = false) String orgId,
-            @RequestParam String taskTitle) {
+            @RequestParam String taskTitle,
+            @RequestParam(required = false, defaultValue = "true") boolean useOrg) {
         System.out.println("\n\n=== 推荐请求 ===\n");
-        System.out.println("用户账号: " + (userAccount != null ? userAccount : "未提供"));
+        System.out.println("用户账号: " + userAccount);
         System.out.println("组织ID: " + (orgId != null ? orgId : "未提供"));
         System.out.println("任务标题: " + taskTitle);
-        System.out.println("使用组织关系: " + (orgId != null && !orgId.isEmpty()));
+        System.out.println("使用组织关系: " + useOrg);
 
         // 检查数据加载情况
         System.out.println("\n组织数量: " + organizationService.getAllOrganizations().size());
@@ -94,9 +96,10 @@ public class RecommendationController {
         System.out.println("\n动态阈值: " + threshold);
 
         RecommendationResult result = recommendationService.recommendLeader(
-                userAccount != null ? userAccount : "",
+                userAccount,
                 orgId != null ? orgId : "",
-                taskTitle);
+                taskTitle,
+                useOrg);
         System.out.println("\n推荐结果: " + (result != null ? result : "无推荐结果"));
         System.out.println("\n=== 推荐结束 ===\n\n");
         return result;
@@ -105,20 +108,23 @@ public class RecommendationController {
     /**
      * 获取所有可能的推荐结果
      *
-     * @param userAccount 当前办理人账号（可选）
+     * @param userAccount 当前办理人账号（必填）
      * @param orgId       当前办理人组织ID（可选）
-     * @param taskTitle   任务标题
+     * @param taskTitle   任务标题（必填）
+     * @param useOrg      是否使用组织关系（可选，默认为true）
      * @return 所有可能的推荐结果列表
      */
     @GetMapping("/recommend/all")
     public List<RecommendationResult> getAllRecommendations(
-            @RequestParam(required = false) String userAccount,
+            @RequestParam(required = true) String userAccount,
             @RequestParam(required = false) String orgId,
-            @RequestParam String taskTitle) {
+            @RequestParam String taskTitle,
+            @RequestParam(required = false, defaultValue = "true") boolean useOrg) {
         return recommendationService.getAllPossibleRecommendations(
-                userAccount != null ? userAccount : "",
+                userAccount,
                 orgId != null ? orgId : "",
-                taskTitle);
+                taskTitle,
+                useOrg);
     }
 
     /**
@@ -170,7 +176,9 @@ public class RecommendationController {
         result.put("orgId", orgId);
         if (org != null) {
             result.put("orgName", org.getOrgName());
-            result.put("leaderAccount", org.getLeaderAccount());
+            result.put("mainLeaderAccount", org.getMainLeaderAccount());
+            result.put("deputyLeaderAccounts", org.getDeputyLeaderAccounts());
+            result.put("superiorLeaderAccount", org.getSuperiorLeaderAccount());
         }
 
         // 打印所有组织ID

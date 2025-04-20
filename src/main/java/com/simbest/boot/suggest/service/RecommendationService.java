@@ -42,68 +42,169 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
+     * @param useOrg             是否使用组织关系
      * @return 推荐结果
      */
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
-            String taskTitle) {
-        // 1. 基于组织关系的匹配（当orgId有值时）
-        if (currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
-            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
+            String taskTitle,
+            boolean useOrg) {
+        // 如果没有传入orgId，但传入了userAccount，尝试根据userAccount查找组织
+        if (useOrg && (currentUserOrgId == null || currentUserOrgId.isEmpty()) &&
+                currentUserAccount != null && !currentUserAccount.isEmpty()) {
+            // 查找用户作为主管的组织
+            List<Organization> userOrgs = organizationService.getOrganizationsAsMainLeader(currentUserAccount);
+            if (!userOrgs.isEmpty()) {
+                currentUserOrgId = userOrgs.get(0).getOrgId();
+                System.out.println("根据用户账号" + currentUserAccount + "找到组织ID: " + currentUserOrgId);
+            }
+        }
+
+        // 1. 基于组织关系的匹配（如果useOrg为true且orgId有值时）
+        if (useOrg && currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
+            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId, currentUserAccount,
+                    taskTitle);
             if (orgResult != null) {
                 return orgResult;
             }
         }
 
         // 2. 基于职责领域的匹配
-        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle);
+        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle, currentUserAccount);
         if (domainResult != null) {
             return domainResult;
         }
 
         // 3. 基于文本相似度的匹配
-        return recommendLeaderBySimilarity(taskTitle);
+        return recommendLeaderBySimilarity(taskTitle, currentUserAccount);
+    }
+
+    /**
+     * 推荐领导账号（兼容旧版本接口）
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeader(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle) {
+        // 默认使用组织关系
+        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, true);
     }
 
     /**
      * 基于组织关系推荐领导账号
      *
-     * @param orgId 组织ID
+     * @param orgId       组织ID
+     * @param userAccount 当前用户账号
+     * @param taskTitle   任务标题
      * @return 推荐结果
      */
-    public RecommendationResult recommendLeaderByOrganization(String orgId) {
+    public RecommendationResult recommendLeaderByOrganization(String orgId, String userAccount, String taskTitle) {
         if (orgId == null || orgId.isEmpty()) {
-            return null;
-        }
-
-        // 获取组织的分管领导
-        String leaderAccount = organizationService.getLeaderAccountByOrgId(orgId);
-        if (leaderAccount == null || leaderAccount.isEmpty()) {
-            return null;
-        }
-
-        // 获取领导信息
-        Leader leader = leaderService.getLeaderByAccount(leaderAccount);
-        if (leader == null) {
             return null;
         }
 
         // 获取组织信息
         Organization org = organizationService.getOrganizationById(orgId);
-        String orgName = org != null ? org.getOrgName() : orgId;
+        if (org == null) {
+            return null;
+        }
 
-        // 创建推荐结果
-        String reason = "基于组织关系匹配：该领导是 " + orgName + " 的分管领导";
-        return new RecommendationResult(leaderAccount, leader.getName(), reason, 1.0);
+        // 情况1: 如果当前用户是组织的主管领导，则根据任务标题匹配最合适的分管领导
+        if (userAccount != null && !userAccount.isEmpty() &&
+                userAccount.equals(org.getMainLeaderAccount()) &&
+                org.getDeputyLeaderAccounts() != null && !org.getDeputyLeaderAccounts().isEmpty()) {
+
+            // 根据任务标题找到最合适的分管领导
+            String bestDeputyLeaderAccount = organizationService.findBestDeputyLeaderByTaskTitle(org, taskTitle);
+            if (bestDeputyLeaderAccount != null) {
+                Leader deputyLeader = leaderService.getLeaderByAccount(bestDeputyLeaderAccount);
+                if (deputyLeader != null) {
+                    String reason = "基于组织关系和任务内容匹配：当前用户是" + org.getOrgName() +
+                            "的主管领导，推荐该组织的分管领导，负责与任务相关的业务领域";
+                    return new RecommendationResult(deputyLeader.getAccount(),
+                            deputyLeader.getName(), reason, 0.9);
+                }
+            }
+
+            // 如果没有找到合适的分管领导，则推荐上级领导
+            String superiorLeaderAccount = org.getSuperiorLeaderAccount();
+            if (superiorLeaderAccount != null && !superiorLeaderAccount.isEmpty()) {
+                Leader superiorLeader = leaderService.getLeaderByAccount(superiorLeaderAccount);
+                if (superiorLeader != null) {
+                    String reason = "基于组织关系匹配：当前用户是" + org.getOrgName() +
+                            "的主管领导，推荐该组织的上级领导";
+                    return new RecommendationResult(superiorLeader.getAccount(),
+                            superiorLeader.getName(), reason, 0.8);
+                }
+            }
+            return null;
+        }
+
+        // 情况2: 如果当前用户是组织的分管领导之一，则推荐该组织的主管领导
+        if (userAccount != null && !userAccount.isEmpty() &&
+                org.getDeputyLeaderAccounts() != null &&
+                org.getDeputyLeaderAccounts().contains(userAccount)) {
+
+            String mainLeaderAccount = org.getMainLeaderAccount();
+            if (mainLeaderAccount != null && !mainLeaderAccount.isEmpty()) {
+                Leader mainLeader = leaderService.getLeaderByAccount(mainLeaderAccount);
+                if (mainLeader != null) {
+                    String reason = "基于组织关系匹配：当前用户是" + org.getOrgName() +
+                            "的分管领导，推荐该组织的主管领导";
+                    return new RecommendationResult(mainLeader.getAccount(),
+                            mainLeader.getName(), reason, 1.0);
+                }
+            }
+            return null;
+        }
+
+        // 情况3: 推荐主管领导
+        String mainLeaderAccount = org.getMainLeaderAccount();
+        if (mainLeaderAccount != null && !mainLeaderAccount.isEmpty()) {
+            Leader mainLeader = leaderService.getLeaderByAccount(mainLeaderAccount);
+            if (mainLeader != null) {
+                String reason = "基于组织关系匹配：推荐" + org.getOrgName() + "的主管领导";
+                return new RecommendationResult(mainLeader.getAccount(),
+                        mainLeader.getName(), reason, 1.0);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 基于组织关系推荐领导账号（兼容旧版本接口）
+     *
+     * @param orgId 组织ID
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderByOrganization(String orgId) {
+        return recommendLeaderByOrganization(orgId, null, null);
+    }
+
+    /**
+     * 基于组织关系推荐领导账号（兼容旧版本接口）
+     *
+     * @param orgId       组织ID
+     * @param userAccount 当前用户账号
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderByOrganization(String orgId, String userAccount) {
+        return recommendLeaderByOrganization(orgId, userAccount, null);
     }
 
     /**
      * 基于职责领域推荐领导账号
      *
-     * @param taskTitle 任务标题
+     * @param taskTitle   任务标题
+     * @param userAccount 当前用户账号
      * @return 推荐结果
      */
-    public RecommendationResult recommendLeaderByDomain(String taskTitle) {
+    public RecommendationResult recommendLeaderByDomain(String taskTitle, String userAccount) {
         if (taskTitle == null || taskTitle.isEmpty()) {
             return null;
         }
@@ -144,6 +245,19 @@ public class RecommendationService {
             return null;
         }
 
+        // 如果当前用户就是该领导，则需要找到该领导的上级
+        if (userAccount != null && !userAccount.isEmpty() && userAccount.equals(leaderAccount)) {
+            // 获取该领导作为主管的所有组织
+            List<Organization> leaderOrgs = organizationService.getOrganizationsAsMainLeader(leaderAccount);
+            if (!leaderOrgs.isEmpty()) {
+                // 获取第一个组织的上级领导
+                String superiorLeaderAccount = leaderOrgs.get(0).getSuperiorLeaderAccount();
+                if (superiorLeaderAccount != null && !superiorLeaderAccount.isEmpty()) {
+                    leaderAccount = superiorLeaderAccount;
+                }
+            }
+        }
+
         // 获取领导信息
         Leader leader = leaderService.getLeaderByAccount(leaderAccount);
         if (leader == null) {
@@ -160,12 +274,23 @@ public class RecommendationService {
     }
 
     /**
-     * 基于文本相似度推荐领导账号
+     * 基于职责领域推荐领导账号（兼容旧版本接口）
      *
      * @param taskTitle 任务标题
      * @return 推荐结果
      */
-    public RecommendationResult recommendLeaderBySimilarity(String taskTitle) {
+    public RecommendationResult recommendLeaderByDomain(String taskTitle) {
+        return recommendLeaderByDomain(taskTitle, null);
+    }
+
+    /**
+     * 基于文本相似度推荐领导账号
+     *
+     * @param taskTitle   任务标题
+     * @param userAccount 当前用户账号
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderBySimilarity(String taskTitle, String userAccount) {
         if (taskTitle == null || taskTitle.isEmpty()) {
             return null;
         }
@@ -175,6 +300,12 @@ public class RecommendationService {
 
         // 遍历所有领导，计算文本相似度
         for (Leader leader : leaderService.getAllLeaders()) {
+            // 如果当前用户就是该领导，则跳过
+            if (userAccount != null && !userAccount.isEmpty() &&
+                    userAccount.equals(leader.getAccount())) {
+                continue;
+            }
+
             // 获取领导负责的所有职责领域
             List<String> domainIds = leader.getDomainIds();
 
@@ -219,6 +350,16 @@ public class RecommendationService {
         // 创建推荐结果
         String reason = "基于文本相似度匹配：该领导的职责领域与任务标题具有较高的相似度";
         return new RecommendationResult(bestLeaderAccount, leader.getName(), reason, bestScore);
+    }
+
+    /**
+     * 基于文本相似度推荐领导账号（兼容旧版本接口）
+     *
+     * @param taskTitle 任务标题
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeaderBySimilarity(String taskTitle) {
+        return recommendLeaderBySimilarity(taskTitle, null);
     }
 
     /**
@@ -280,34 +421,63 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
+     * @param useOrg             是否使用组织关系
      * @return 所有可能的推荐结果列表
      */
     public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
             String currentUserOrgId,
-            String taskTitle) {
+            String taskTitle,
+            boolean useOrg) {
         List<RecommendationResult> results = new ArrayList<>();
 
-        // 1. 基于组织关系的匹配（当orgId有值时）
-        if (currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
-            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId);
+        // 如果没有传入orgId，但传入了userAccount，尝试根据userAccount查找组织
+        if (useOrg && (currentUserOrgId == null || currentUserOrgId.isEmpty()) &&
+                currentUserAccount != null && !currentUserAccount.isEmpty()) {
+            // 查找用户作为主管的组织
+            List<Organization> userOrgs = organizationService.getOrganizationsAsMainLeader(currentUserAccount);
+            if (!userOrgs.isEmpty()) {
+                currentUserOrgId = userOrgs.get(0).getOrgId();
+                System.out.println("根据用户账号" + currentUserAccount + "找到组织ID: " + currentUserOrgId);
+            }
+        }
+
+        // 1. 基于组织关系的匹配（如果useOrg为true且orgId有值时）
+        if (useOrg && currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
+            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId, currentUserAccount,
+                    taskTitle);
             if (orgResult != null) {
                 results.add(orgResult);
             }
         }
 
         // 2. 基于职责领域的匹配
-        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle);
+        RecommendationResult domainResult = recommendLeaderByDomain(taskTitle, currentUserAccount);
         if (domainResult != null) {
             results.add(domainResult);
         }
 
         // 3. 基于文本相似度的匹配
-        RecommendationResult similarityResult = recommendLeaderBySimilarity(taskTitle);
+        RecommendationResult similarityResult = recommendLeaderBySimilarity(taskTitle, currentUserAccount);
         if (similarityResult != null) {
             results.add(similarityResult);
         }
 
         return results;
+    }
+
+    /**
+     * 获取所有可能的推荐结果（兼容旧版本接口）
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @return 所有可能的推荐结果列表
+     */
+    public List<RecommendationResult> getAllPossibleRecommendations(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle) {
+        // 默认使用组织关系
+        return getAllPossibleRecommendations(currentUserAccount, currentUserOrgId, taskTitle, true);
     }
 
 }

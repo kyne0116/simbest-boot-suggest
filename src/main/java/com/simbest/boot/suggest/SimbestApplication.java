@@ -27,16 +27,20 @@ public class SimbestApplication {
      * 创建组织服务Bean
      */
     @Bean
-    public OrganizationService organizationService() {
-        return new OrganizationService();
+    public OrganizationService organizationService(LeaderService leaderService) {
+        OrganizationService organizationService = new OrganizationService();
+        organizationService.setLeaderService(leaderService);
+        return organizationService;
     }
 
     /**
      * 创建领导服务Bean
      */
     @Bean
-    public LeaderService leaderService() {
-        return new LeaderService();
+    public LeaderService leaderService(DomainService domainService) {
+        LeaderService leaderService = new LeaderService();
+        leaderService.setDomainService(domainService);
+        return leaderService;
     }
 
     /**
