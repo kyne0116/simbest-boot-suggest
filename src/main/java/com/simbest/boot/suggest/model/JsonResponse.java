@@ -24,6 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Builder
 public class JsonResponse<T> {
+    /**
+     * 成功提示信息
+     */
+    public static final String MSG_SUCCESS = "操作成功";
+
+    /**
+     * 失败提示信息
+     */
+    public static final String MSG_ERRO = "操作失败";
 
     /**
      * 未授权访问提示信息

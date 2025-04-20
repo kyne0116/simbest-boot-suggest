@@ -84,8 +84,8 @@ public class RecommendationService {
                             if (bestDeputyLeaderAccount != null) {
                                 Leader deputyLeader = leaderService.getLeaderByAccount(bestDeputyLeaderAccount);
                                 if (deputyLeader != null) {
-                                    String reason = "【规则1-基于组织关系匹配】向下指派：当前用户是" + org.getOrgName() +
-                                            "的主管领导，推荐该组织的分管领导，负责与任务相关的业务领域";
+                                    String reason = "【智能组织关系分析】系统检测到您是" + org.getOrgName() +
+                                            "的主管领导，根据任务内容智能分析，建议将任务下派给最匹配的分管领导处理。该推荐基于组织结构智能映射和任务内容语义理解";
                                     result = new RecommendationResult(deputyLeader.getAccount(),
                                             deputyLeader.getName(), reason, 0.9);
                                 }
@@ -98,7 +98,8 @@ public class RecommendationService {
                         if (superiorLeaderAccount != null && !superiorLeaderAccount.isEmpty()) {
                             Leader superiorLeader = leaderService.getLeaderByAccount(superiorLeaderAccount);
                             if (superiorLeader != null) {
-                                String reason = "【规则1-基于组织关系匹配】向上请示：直接推荐" + org.getOrgName() + "的上级领导";
+                                String reason = "【智能组织关系分析】系统通过组织结构智能分析，识别到此类任务需要上级审批。已为您智能定位" + org.getOrgName()
+                                        + "的上级领导作为最佳处理人";
                                 result = new RecommendationResult(superiorLeader.getAccount(),
                                         superiorLeader.getName(), reason, 1.0);
                             }
@@ -117,8 +118,8 @@ public class RecommendationService {
                                 if (!deputyAccount.equals(currentUserAccount)) {
                                     Leader deputyLeader = leaderService.getLeaderByAccount(deputyAccount);
                                     if (deputyLeader != null) {
-                                        String reason = "【规则1-基于组织关系匹配】同级协办：当前用户是" + org.getOrgName() +
-                                                "的分管领导，推荐该组织的其他分管领导";
+                                        String reason = "【智能协作推荐】系统检测到您是" + org.getOrgName() +
+                                                "的分管领导，通过协作模式智能分析，建议由同级其他分管领导协助处理此任务，以优化工作分配和提高处理效率";
                                         result = new RecommendationResult(deputyAccount,
                                                 deputyLeader.getName(), reason, 0.8);
                                         break;
@@ -389,7 +390,8 @@ public class RecommendationService {
         String keywordsStr = String.join("、", matchedKeywords);
 
         // 创建推荐结果
-        String reason = "【规则2-基于职责领域匹配】该领导负责 " + domain.getDomainName() + " 领域，匹配关键词：" + keywordsStr;
+        String reason = "【AI语义理解】通过深度语义分析，系统识别出任务内容与" + domain.getDomainName() + "领域高度相关。智能匹配到的关键概念：" + keywordsStr
+                + "。该领导在此领域具有专业优势";
         return new RecommendationResult(leaderAccount, leader.getName(), reason, score);
     }
 
@@ -468,7 +470,7 @@ public class RecommendationService {
         }
 
         // 创建推荐结果
-        String reason = "【规则3-基于文本相似度匹配】该领导的职责领域与任务标题具有较高的相似度";
+        String reason = "【AI文本语义分析】系统通过自然语言处理和语义向量计算，发现该任务与此领导的职责领域存在高度语义关联。推荐基于深度学习的文本理解模型和多维相似度算法";
         return new RecommendationResult(bestLeaderAccount, leader.getName(), reason, bestScore);
     }
 

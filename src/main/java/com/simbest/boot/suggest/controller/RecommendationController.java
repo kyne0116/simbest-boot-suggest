@@ -1,12 +1,26 @@
 package com.simbest.boot.suggest.controller;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.simbest.boot.suggest.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.simbest.boot.suggest.config.SystemConfig;
+import com.simbest.boot.suggest.model.JsonResponse;
+import com.simbest.boot.suggest.model.Leader;
+import com.simbest.boot.suggest.model.Organization;
+import com.simbest.boot.suggest.model.RecommendationRequest;
+import com.simbest.boot.suggest.model.RecommendationResult;
+import com.simbest.boot.suggest.model.ResponsibilityDomain;
 import com.simbest.boot.suggest.service.DomainService;
 import com.simbest.boot.suggest.service.LeaderService;
 import com.simbest.boot.suggest.service.OrganizationService;
@@ -14,6 +28,8 @@ import com.simbest.boot.suggest.service.RecommendationService;
 import com.simbest.boot.suggest.util.ChineseTokenizer;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static com.simbest.boot.suggest.model.JsonResponse.MSG_SUCCESS;
 
 /**
  * 领导推荐控制器（POST方法）
@@ -116,9 +132,18 @@ public class RecommendationController {
                 request.getWorkflowDirection(),
                 useOrg,
                 request.getCandidateAccounts());
-        log.info("推荐结果: {}", (result != null ? result : "无推荐结果"));
+
+        if (result != null) {
+            // 生成详细的AI分析报告
+            String detailedReport = result.generateDetailedAIReport();
+            log.info("推荐结果: {}", result);
+            log.info("详细AI分析报告: {}", detailedReport);
+        } else {
+            log.info("无推荐结果");
+        }
+
         log.info("=== 推荐结束 ===");
-        return JsonResponse.success(result, request.getTaskTitle() + "的推荐结果");
+        return JsonResponse.success(result, MSG_SUCCESS);
     }
 
     /**
