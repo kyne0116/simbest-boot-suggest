@@ -42,12 +42,14 @@ public class RecommendationService {
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
      * @param useOrg             是否使用组织关系
+     * @param candidateAccounts  候选账号列表，如果提供，则推荐结果必须在此列表中
      * @return 推荐结果
      */
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
             String taskTitle,
-            boolean useOrg) {
+            boolean useOrg,
+            String[] candidateAccounts) {
         // 如果没有传入orgId，但传入了userAccount，尝试根据userAccount查找组织
         if (useOrg && (currentUserOrgId == null || currentUserOrgId.isEmpty()) &&
                 currentUserAccount != null && !currentUserAccount.isEmpty()) {
@@ -64,18 +66,56 @@ public class RecommendationService {
             RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId, currentUserAccount,
                     taskTitle);
             if (orgResult != null) {
-                return orgResult;
+                // 检查是否在候选账号列表中
+                if (isInCandidateAccounts(orgResult.getLeaderAccount(), candidateAccounts)) {
+                    return orgResult;
+                } else {
+                    System.out.println("基于组织关系的推荐结果不在候选账号列表中，继续匹配");
+                }
             }
         }
 
         // 2. 基于职责领域的匹配
         RecommendationResult domainResult = recommendLeaderByDomain(taskTitle, currentUserAccount);
         if (domainResult != null) {
-            return domainResult;
+            // 检查是否在候选账号列表中
+            if (isInCandidateAccounts(domainResult.getLeaderAccount(), candidateAccounts)) {
+                return domainResult;
+            } else {
+                System.out.println("基于职责领域的推荐结果不在候选账号列表中，继续匹配");
+            }
         }
 
         // 3. 基于文本相似度的匹配
-        return recommendLeaderBySimilarity(taskTitle, currentUserAccount);
+        RecommendationResult similarityResult = recommendLeaderBySimilarity(taskTitle, currentUserAccount);
+        if (similarityResult != null) {
+            // 检查是否在候选账号列表中
+            if (isInCandidateAccounts(similarityResult.getLeaderAccount(), candidateAccounts)) {
+                return similarityResult;
+            } else {
+                System.out.println("基于文本相似度的推荐结果不在候选账号列表中");
+                return null; // 所有推荐结果都不在候选账号列表中，返回null
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 推荐领导账号
+     *
+     * @param currentUserAccount 当前办理人账号
+     * @param currentUserOrgId   当前办理人组织ID
+     * @param taskTitle          任务标题
+     * @param useOrg             是否使用组织关系
+     * @return 推荐结果
+     */
+    public RecommendationResult recommendLeader(String currentUserAccount,
+            String currentUserOrgId,
+            String taskTitle,
+            boolean useOrg) {
+        // 调用带候选账号的方法，传入null表示不限制候选账号
+        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, useOrg, null);
     }
 
     /**
@@ -89,8 +129,8 @@ public class RecommendationService {
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
             String taskTitle) {
-        // 默认使用组织关系
-        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, true);
+        // 默认使用组织关系，不限制候选账号
+        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, true, null);
     }
 
     /**
@@ -412,6 +452,29 @@ public class RecommendationService {
         }
 
         return baseThreshold * lengthFactor * contentFactor;
+    }
+
+    /**
+     * 检查账号是否在候选账号列表中
+     *
+     * @param account           要检查的账号
+     * @param candidateAccounts 候选账号列表
+     * @return 如果在候选账号列表中或候选账号列表为空，返回true；否则返回false
+     */
+    private boolean isInCandidateAccounts(String account, String[] candidateAccounts) {
+        // 如果候选账号列表为空，则不限制
+        if (candidateAccounts == null || candidateAccounts.length == 0) {
+            return true;
+        }
+
+        // 检查账号是否在候选账号列表中
+        for (String candidateAccount : candidateAccounts) {
+            if (candidateAccount.equals(account)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

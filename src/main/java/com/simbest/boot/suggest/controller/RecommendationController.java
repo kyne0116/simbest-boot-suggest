@@ -46,10 +46,11 @@ public class RecommendationController {
     /**
      * 推荐领导
      *
-     * @param userAccount 当前办理人账号（必填）
-     * @param orgId       当前办理人组织ID（可选）
-     * @param taskTitle   任务标题（必填）
-     * @param useOrg      是否使用组织关系（可选，默认为true）
+     * @param userAccount       当前办理人账号（必填）
+     * @param orgId             当前办理人组织ID（可选）
+     * @param taskTitle         任务标题（必填）
+     * @param useOrg            是否使用组织关系（可选，默认为true）
+     * @param candidateAccounts 候选账号列表（可选），如果提供，则推荐结果必须在此列表中
      * @return 推荐结果
      */
     @GetMapping("/recommend")
@@ -57,12 +58,14 @@ public class RecommendationController {
             @RequestParam(required = true) String userAccount,
             @RequestParam(required = false) String orgId,
             @RequestParam String taskTitle,
-            @RequestParam(required = false, defaultValue = "true") boolean useOrg) {
+            @RequestParam(required = false, defaultValue = "true") boolean useOrg,
+            @RequestParam(required = false) String[] candidateAccounts) {
         System.out.println("\n\n=== 推荐请求 ===\n");
         System.out.println("用户账号: " + userAccount);
         System.out.println("组织ID: " + (orgId != null ? orgId : "未提供"));
         System.out.println("任务标题: " + taskTitle);
         System.out.println("使用组织关系: " + useOrg);
+        System.out.println("候选账号列表: " + (candidateAccounts != null ? String.join(", ", candidateAccounts) : "未提供"));
 
         // 检查数据加载情况
         System.out.println("\n组织数量: " + organizationService.getAllOrganizations().size());
@@ -100,7 +103,8 @@ public class RecommendationController {
                 userAccount,
                 orgId != null ? orgId : "",
                 taskTitle,
-                useOrg);
+                useOrg,
+                candidateAccounts);
         System.out.println("\n推荐结果: " + (result != null ? result : "无推荐结果"));
         System.out.println("\n=== 推荐结束 ===\n\n");
         return JsonResponse.success(result, taskTitle + "的推荐结果");
