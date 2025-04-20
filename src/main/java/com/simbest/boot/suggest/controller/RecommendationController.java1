@@ -1,12 +1,24 @@
 package com.simbest.boot.suggest.controller;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.simbest.boot.suggest.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.simbest.boot.suggest.config.SystemConfig;
+import com.simbest.boot.suggest.model.JsonResponse;
+import com.simbest.boot.suggest.model.Leader;
+import com.simbest.boot.suggest.model.Organization;
+import com.simbest.boot.suggest.model.RecommendationResult;
+import com.simbest.boot.suggest.model.ResponsibilityDomain;
+import com.simbest.boot.suggest.model.WorkflowDirection;
 import com.simbest.boot.suggest.service.DomainService;
 import com.simbest.boot.suggest.service.LeaderService;
 import com.simbest.boot.suggest.service.OrganizationService;
@@ -16,8 +28,8 @@ import com.simbest.boot.suggest.util.ChineseTokenizer;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 领导推荐控制器（POST方法）
- * 提供领导推荐相关的REST API，使用POST方法和JSON请求体
+ * 领导推荐控制器
+ * 提供领导推荐相关的REST API
  */
 @RestController
 @RequestMapping("/suggest")
@@ -40,42 +52,31 @@ public class RecommendationController {
     private SystemConfig systemConfig;
 
     /**
-     * 推荐领导（POST方法，使用JSON请求体）
+     * 推荐领导
      *
-     * @param request 推荐请求对象，包含以下字段：
-     *                - userAccount: 当前办理人账号（必填）
-     *                - orgId: 当前办理人组织ID（可选）
-     *                - taskTitle: 任务标题（必填）
-     *                - workflowDirection:
-     *                工作流方向（必填）：向下指派(DOWNWARD)、向上请示(UPWARD)或同级协办(PARALLEL)
-     *                - useOrg: 是否使用组织关系（可选，默认为true）
-     *                - candidateAccounts: 候选账号列表（可选），如果提供，则推荐结果必须在此列表中
+     * @param userAccount       当前办理人账号（必填）
+     * @param orgId             当前办理人组织ID（可选）
+     * @param taskTitle         任务标题（必填）
+     * @param workflowDirection 工作流方向（必填）：向下指派(DOWNWARD)、向上请示(UPWARD)或同级协办(PARALLEL)
+     * @param useOrg            是否使用组织关系（可选，默认为true）
+     * @param candidateAccounts 候选账号列表（可选），如果提供，则推荐结果必须在此列表中
      * @return 推荐结果
      */
-    @PostMapping("/recommend")
-    public JsonResponse<RecommendationResult> recommendLeaderPost(@RequestBody RecommendationRequest request) {
-        // 参数校验
-        if (request.getUserAccount() == null || request.getUserAccount().isEmpty()) {
-            return JsonResponse.fail("用户账号不能为空");
-        }
-        if (request.getTaskTitle() == null || request.getTaskTitle().isEmpty()) {
-            return JsonResponse.fail("任务标题不能为空");
-        }
-        if (request.getWorkflowDirection() == null) {
-            return JsonResponse.fail("工作流方向不能为空");
-        }
-
-        // 设置默认值
-        boolean useOrg = request.getUseOrg() != null ? request.getUseOrg() : true;
-
-        log.info("=== 推荐请求(POST) ===");
-        log.info("用户账号: {}", request.getUserAccount());
-        log.info("组织ID: {}", (request.getOrgId() != null ? request.getOrgId() : "未提供"));
-        log.info("任务标题: {}", request.getTaskTitle());
-        log.info("工作流方向: {}", request.getWorkflowDirection());
+    @GetMapping("/recommend")
+    public JsonResponse<RecommendationResult> recommendLeader(
+            @RequestParam(required = true) String userAccount,
+            @RequestParam(required = false) String orgId,
+            @RequestParam String taskTitle,
+            @RequestParam(required = true) WorkflowDirection workflowDirection,
+            @RequestParam(required = false, defaultValue = "true") boolean useOrg,
+            @RequestParam(required = false) String[] candidateAccounts) {
+        log.info("=== 推荐请求 ===");
+        log.info("用户账号: {}", userAccount);
+        log.info("组织ID: {}", (orgId != null ? orgId : "未提供"));
+        log.info("任务标题: {}", taskTitle);
+        log.info("工作流方向: {}", workflowDirection);
         log.info("使用组织关系: {}", useOrg);
-        log.info("候选账号列表: {}",
-                (request.getCandidateAccounts() != null ? String.join(", ", request.getCandidateAccounts()) : "未提供"));
+        log.info("候选账号列表: {}", (candidateAccounts != null ? String.join(", ", candidateAccounts) : "未提供"));
 
         // 检查数据加载情况
         log.debug("组织数量: {}", organizationService.getAllOrganizations().size());
@@ -85,20 +86,20 @@ public class RecommendationController {
         // 检查关键词匹配情况
         log.debug("关键词匹配情况:");
         for (ResponsibilityDomain domain : domainService.getAllDomains()) {
-            double score = domain.calculateMatchScore(request.getTaskTitle());
-            List<String> matchedKeywords = domain.getMatchedKeywords(request.getTaskTitle());
+            double score = domain.calculateMatchScore(taskTitle);
+            List<String> matchedKeywords = domain.getMatchedKeywords(taskTitle);
             log.debug("{} - 匹配分数: {}, 匹配关键词: {}", domain.getDomainName(), score, matchedKeywords);
 
             // 打印关键词列表
             log.debug("  关键词列表: {}", domain.getKeywords());
 
             // 检查分词结果
-            List<String> textTokens = ChineseTokenizer.tokenize(request.getTaskTitle());
+            List<String> textTokens = ChineseTokenizer.tokenize(taskTitle);
             log.debug("  分词结果: {}", textTokens);
 
             // 检查直接匹配
             for (String keyword : domain.getKeywords()) {
-                boolean directMatch = request.getTaskTitle().contains(keyword);
+                boolean directMatch = taskTitle.contains(keyword);
                 if (directMatch) {
                     log.debug("  直接匹配关键词: {}", keyword);
                 }
@@ -106,19 +107,19 @@ public class RecommendationController {
         }
 
         // 检查动态阈值
-        double threshold = recommendationService.calculateDynamicThreshold(request.getTaskTitle());
+        double threshold = recommendationService.calculateDynamicThreshold(taskTitle);
         log.debug("动态阈值: {}", threshold);
 
         RecommendationResult result = recommendationService.recommendLeader(
-                request.getUserAccount(),
-                request.getOrgId() != null ? request.getOrgId() : "",
-                request.getTaskTitle(),
-                request.getWorkflowDirection(),
+                userAccount,
+                orgId != null ? orgId : "",
+                taskTitle,
+                workflowDirection,
                 useOrg,
-                request.getCandidateAccounts());
+                candidateAccounts);
         log.info("推荐结果: {}", (result != null ? result : "无推荐结果"));
         log.info("=== 推荐结束 ===");
-        return JsonResponse.success(result, request.getTaskTitle() + "的推荐结果");
+        return JsonResponse.success(result, taskTitle + "的推荐结果");
     }
 
     /**
