@@ -12,10 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 同义词管理工具类
  * 提供同义词查询和管理功能
  */
+@Slf4j
 public class SynonymManager {
     private static final Map<String, Set<String>> synonyms = new HashMap<>();
     private static boolean isInitialized = false;
@@ -63,7 +66,7 @@ public class SynonymManager {
 
             isInitialized = true;
         } catch (IOException e) {
-            System.err.println("加载同义词表失败: " + e.getMessage());
+            log.error("加载同义词表失败: {}", e.getMessage(), e);
         }
     }
 

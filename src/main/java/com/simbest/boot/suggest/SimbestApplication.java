@@ -13,10 +13,13 @@ import com.simbest.boot.suggest.util.ChineseTokenizer;
 import com.simbest.boot.suggest.util.DataLoader;
 import com.simbest.boot.suggest.util.SynonymManager;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Simbest Boot Application Main Class
  */
 @SpringBootApplication
+@Slf4j
 public class SimbestApplication {
 
     public static void main(String[] args) {
@@ -68,25 +71,25 @@ public class SimbestApplication {
     @Bean
     public CommandLineRunner initializeData() {
         return args -> {
-            System.out.println("======== 初始化推荐系统数据 ========");
+            log.info("======== 初始化推荐系统数据 ========");
 
             // 预加载配置文件
-            System.out.println("正在加载配置文件...");
-            System.out.println("1. 领域到领导映射: " + DataLoader.loadDomainLeaderMapping().size() + " 条记录");
-            System.out.println("2. 常用词列表: " + DataLoader.loadCommonWords().size() + " 个词语");
-            System.out.println("3. 同义词组: " + DataLoader.loadCommonSynonyms().size() + " 个组");
-            System.out.println("4. 阈值配置: " + DataLoader.loadThresholdConfig().size() + " 个参数");
-            System.out.println("5. 算法权重配置: " + DataLoader.loadAlgorithmWeights().size() + " 个部分");
+            log.info("正在加载配置文件...");
+            log.info("1. 领域到领导映射: {} 条记录", DataLoader.loadDomainLeaderMapping().size());
+            log.info("2. 常用词列表: {} 个词语", DataLoader.loadCommonWords().size());
+            log.info("3. 同义词组: {} 个组", DataLoader.loadCommonSynonyms().size());
+            log.info("4. 阈值配置: {} 个参数", DataLoader.loadThresholdConfig().size());
+            log.info("5. 算法权重配置: {} 个部分", DataLoader.loadAlgorithmWeights().size());
 
             // 初始化中文分词词典
-            System.out.println("正在初始化中文分词词典...");
+            log.info("正在初始化中文分词词典...");
             ChineseTokenizer.initialize();
 
             // 初始化同义词表
-            System.out.println("正在初始化同义词表...");
+            log.info("正在初始化同义词表...");
             SynonymManager.initialize();
 
-            System.out.println("======== 初始化完成 ========");
+            log.info("======== 初始化完成 ========");
         };
     }
 }

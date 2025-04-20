@@ -13,10 +13,13 @@ import com.simbest.boot.suggest.model.Leader;
 import com.simbest.boot.suggest.model.Organization;
 import com.simbest.boot.suggest.model.ResponsibilityDomain;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 数据加载器
  * 负责从资源文件加载初始化数据
  */
+@Slf4j
 public class DataLoader {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -33,8 +36,7 @@ public class DataLoader {
                 });
             }
         } catch (IOException e) {
-            System.err.println("加载组织数据失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载组织数据失败: {}", e.getMessage(), e);
         }
         return new ArrayList<>();
     }
@@ -52,8 +54,7 @@ public class DataLoader {
                 });
             }
         } catch (IOException e) {
-            System.err.println("加载领导数据失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载领导数据失败: {}", e.getMessage(), e);
         }
         return new ArrayList<>();
     }
@@ -71,8 +72,7 @@ public class DataLoader {
                 });
             }
         } catch (IOException e) {
-            System.err.println("加载职责领域数据失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载职责领域数据失败: {}", e.getMessage(), e);
         }
         return new ArrayList<>();
     }
@@ -93,12 +93,11 @@ public class DataLoader {
                 for (Map<String, String> mapping : mappingList) {
                     result.put(mapping.get("domainName"), mapping.get("leaderAccount"));
                 }
-                System.out.println("已加载 " + result.size() + " 个领域到领导的映射");
+                log.info("已加载 {} 个领域到领导的映射", result.size());
                 return result;
             }
         } catch (IOException e) {
-            System.err.println("加载领域到领导映射失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载领域到领导映射失败: {}", e.getMessage(), e);
         }
         return new HashMap<>();
     }
@@ -114,12 +113,11 @@ public class DataLoader {
             if (is != null) {
                 List<String> words = objectMapper.readValue(is, new TypeReference<List<String>>() {
                 });
-                System.out.println("已加载 " + words.size() + " 个常用词");
+                log.info("已加载 {} 个常用词", words.size());
                 return words;
             }
         } catch (IOException e) {
-            System.err.println("加载常用词失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载常用词失败: {}", e.getMessage(), e);
         }
         return new ArrayList<>();
     }
@@ -146,12 +144,11 @@ public class DataLoader {
                     }
                 }
 
-                System.out.println("已加载 " + result.size() + " 个同义词组");
+                log.info("已加载 {} 个同义词组", result.size());
                 return result;
             }
         } catch (IOException e) {
-            System.err.println("加载同义词组失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载同义词组失败: {}", e.getMessage(), e);
         }
         return new ArrayList<>();
     }
@@ -167,12 +164,11 @@ public class DataLoader {
             if (is != null) {
                 Map<String, Object> config = objectMapper.readValue(is, new TypeReference<Map<String, Object>>() {
                 });
-                System.out.println("已加载阈值配置");
+                log.info("已加载阈值配置");
                 return config;
             }
         } catch (IOException e) {
-            System.err.println("加载阈值配置失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载阈值配置失败: {}", e.getMessage(), e);
         }
         return new HashMap<>();
     }
@@ -188,12 +184,11 @@ public class DataLoader {
             if (is != null) {
                 Map<String, Object> config = objectMapper.readValue(is, new TypeReference<Map<String, Object>>() {
                 });
-                System.out.println("已加载算法权重配置");
+                log.info("已加载算法权重配置");
                 return config;
             }
         } catch (IOException e) {
-            System.err.println("加载算法权重配置失败: " + e.getMessage());
-            e.printStackTrace();
+            log.error("加载算法权重配置失败: {}", e.getMessage(), e);
         }
         return new HashMap<>();
     }

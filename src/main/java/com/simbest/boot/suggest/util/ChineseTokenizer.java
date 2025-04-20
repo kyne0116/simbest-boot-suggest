@@ -11,10 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 简单中文分词工具类
  * 使用最大正向匹配算法进行中文分词
  */
+@Slf4j
 public class ChineseTokenizer {
     private static final Set<String> dictionary = new HashSet<>();
     private static int maxWordLength = 10; // 默认最大词长
@@ -33,7 +36,7 @@ public class ChineseTokenizer {
             Map<String, Object> tokenizerConfig = DataLoader.getAlgorithmWeightSection("tokenizer");
             if (tokenizerConfig.containsKey("maxWordLength")) {
                 maxWordLength = ((Number) tokenizerConfig.get("maxWordLength")).intValue();
-                System.out.println("已加载分词器最大词长配置: " + maxWordLength);
+                log.info("已加载分词器最大词长配置: {}", maxWordLength);
             }
 
             // 从资源文件加载词典
@@ -55,7 +58,7 @@ public class ChineseTokenizer {
 
             isInitialized = true;
         } catch (IOException e) {
-            System.err.println("加载词典失败: " + e.getMessage());
+            log.error("加载词典失败: {}", e.getMessage(), e);
         }
     }
 

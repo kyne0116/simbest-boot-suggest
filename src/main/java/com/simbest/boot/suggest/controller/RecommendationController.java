@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.simbest.boot.suggest.config.SystemConfig;
 import com.simbest.boot.suggest.model.JsonResponse;
 import com.simbest.boot.suggest.model.Leader;
 import com.simbest.boot.suggest.model.Organization;
@@ -24,12 +25,15 @@ import com.simbest.boot.suggest.service.OrganizationService;
 import com.simbest.boot.suggest.service.RecommendationService;
 import com.simbest.boot.suggest.util.ChineseTokenizer;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 领导推荐控制器
  * 提供领导推荐相关的REST API
  */
 @RestController
 @RequestMapping("/suggest")
+@Slf4j
 public class RecommendationController {
 
     @Autowired
@@ -43,6 +47,9 @@ public class RecommendationController {
 
     @Autowired
     private DomainService domainService;
+
+    @Autowired
+    private SystemConfig systemConfig;
 
     /**
      * 推荐领导
@@ -63,45 +70,45 @@ public class RecommendationController {
             @RequestParam(required = true) WorkflowDirection workflowDirection,
             @RequestParam(required = false, defaultValue = "true") boolean useOrg,
             @RequestParam(required = false) String[] candidateAccounts) {
-        System.out.println("\n\n=== 推荐请求 ===\n");
-        System.out.println("用户账号: " + userAccount);
-        System.out.println("组织ID: " + (orgId != null ? orgId : "未提供"));
-        System.out.println("任务标题: " + taskTitle);
-        System.out.println("工作流方向: " + workflowDirection);
-        System.out.println("使用组织关系: " + useOrg);
-        System.out.println("候选账号列表: " + (candidateAccounts != null ? String.join(", ", candidateAccounts) : "未提供"));
+        log.info("=== 推荐请求 ===");
+        log.info("用户账号: {}", userAccount);
+        log.info("组织ID: {}", (orgId != null ? orgId : "未提供"));
+        log.info("任务标题: {}", taskTitle);
+        log.info("工作流方向: {}", workflowDirection);
+        log.info("使用组织关系: {}", useOrg);
+        log.info("候选账号列表: {}", (candidateAccounts != null ? String.join(", ", candidateAccounts) : "未提供"));
 
         // 检查数据加载情况
-        System.out.println("\n组织数量: " + organizationService.getAllOrganizations().size());
-        System.out.println("领导数量: " + leaderService.getAllLeaders().size());
-        System.out.println("职责领域数量: " + domainService.getAllDomains().size());
+        log.debug("组织数量: {}", organizationService.getAllOrganizations().size());
+        log.debug("领导数量: {}", leaderService.getAllLeaders().size());
+        log.debug("职责领域数量: {}", domainService.getAllDomains().size());
 
         // 检查关键词匹配情况
-        System.out.println("\n关键词匹配情况:");
+        log.debug("关键词匹配情况:");
         for (ResponsibilityDomain domain : domainService.getAllDomains()) {
             double score = domain.calculateMatchScore(taskTitle);
             List<String> matchedKeywords = domain.getMatchedKeywords(taskTitle);
-            System.out.println(domain.getDomainName() + " - 匹配分数: " + score + ", 匹配关键词: " + matchedKeywords);
+            log.debug("{} - 匹配分数: {}, 匹配关键词: {}", domain.getDomainName(), score, matchedKeywords);
 
             // 打印关键词列表
-            System.out.println("  关键词列表: " + domain.getKeywords());
+            log.debug("  关键词列表: {}", domain.getKeywords());
 
             // 检查分词结果
             List<String> textTokens = ChineseTokenizer.tokenize(taskTitle);
-            System.out.println("  分词结果: " + textTokens);
+            log.debug("  分词结果: {}", textTokens);
 
             // 检查直接匹配
             for (String keyword : domain.getKeywords()) {
                 boolean directMatch = taskTitle.contains(keyword);
                 if (directMatch) {
-                    System.out.println("  直接匹配关键词: " + keyword);
+                    log.debug("  直接匹配关键词: {}", keyword);
                 }
             }
         }
 
         // 检查动态阈值
         double threshold = recommendationService.calculateDynamicThreshold(taskTitle);
-        System.out.println("\n动态阈值: " + threshold);
+        log.debug("动态阈值: {}", threshold);
 
         RecommendationResult result = recommendationService.recommendLeader(
                 userAccount,
@@ -110,8 +117,8 @@ public class RecommendationController {
                 workflowDirection,
                 useOrg,
                 candidateAccounts);
-        System.out.println("\n推荐结果: " + (result != null ? result : "无推荐结果"));
-        System.out.println("\n=== 推荐结束 ===\n\n");
+        log.info("推荐结果: {}", (result != null ? result : "无推荐结果"));
+        log.info("=== 推荐结束 ===");
         return JsonResponse.success(result, taskTitle + "的推荐结果");
     }
 
@@ -143,8 +150,8 @@ public class RecommendationController {
     @GetMapping("/info")
     public Map<String, Object> getSystemInfo() {
         Map<String, Object> info = new HashMap<>();
-        info.put("name", "领导推荐系统");
-        info.put("version", "1.0.0");
+        info.put("name", systemConfig.getSystemName());
+        info.put("version", systemConfig.getSystemVersion());
         info.put("organizationCount", organizationService.getAllOrganizations().size());
         info.put("leaderCount", leaderService.getAllLeaders().size());
         return info;

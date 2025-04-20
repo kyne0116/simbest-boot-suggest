@@ -13,6 +13,7 @@ import com.simbest.boot.suggest.util.SynonymManager;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 职责领域类
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Slf4j
 public class ResponsibilityDomain {
     private String domainId; // 领域ID
     private String domainName; // 领域名称
@@ -53,13 +55,23 @@ public class ResponsibilityDomain {
      */
     public ResponsibilityDomain(String domainName, String responsiblePerson, String description) {
         // 从配置文件中获取领域ID前缀
-        Map<String, Object> domainConfig = DataLoader.getAlgorithmWeightSection("domainId");
-        String prefix = domainConfig.containsKey("prefix") ? (String) domainConfig.get("prefix") : "domain_";
+        String prefix;
+        try {
+            // 尝试从配置文件中获取前缀
+            Map<String, Object> domainConfig = DataLoader.getAlgorithmWeightSection("domainId");
+            prefix = domainConfig.containsKey("prefix") ? (String) domainConfig.get("prefix") : "domain_";
+            log.debug("从配置文件中获取领域ID前缀: {}", prefix);
+        } catch (Exception e) {
+            // 如果出错，使用默认前缀
+            prefix = "domain_";
+            log.warn("从配置文件中获取领域ID前缀失败，使用默认前缀: {}", prefix, e);
+        }
 
         this.domainId = prefix + System.currentTimeMillis(); // 生成一个临时ID
         this.domainName = domainName;
         this.responsiblePerson = responsiblePerson;
         this.description = description;
+        log.debug("创建新的职责领域: {}, ID: {}", domainName, domainId);
     }
 
     /**
