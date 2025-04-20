@@ -9,6 +9,7 @@ import com.simbest.boot.suggest.model.Organization;
 import com.simbest.boot.suggest.model.RecommendationResult;
 import com.simbest.boot.suggest.model.ResponsibilityDomain;
 import com.simbest.boot.suggest.model.TextSimilarityUtil;
+import com.simbest.boot.suggest.model.WorkflowDirection;
 import com.simbest.boot.suggest.util.DataLoader;
 
 /**
@@ -41,6 +42,7 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
+     * @param workflowDirection  工作流方向：向下指派(DOWNWARD)、向上请示(UPWARD)或同级协办(PARALLEL)
      * @param useOrg             是否使用组织关系
      * @param candidateAccounts  候选账号列表，如果提供，则推荐结果必须在此列表中
      * @return 推荐结果
@@ -48,6 +50,7 @@ public class RecommendationService {
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
             String taskTitle,
+            WorkflowDirection workflowDirection,
             boolean useOrg,
             String[] candidateAccounts) {
         // 如果没有传入orgId，但传入了userAccount，尝试根据userAccount查找组织
@@ -61,17 +64,93 @@ public class RecommendationService {
             }
         }
 
+        System.out.println("工作流方向: " + workflowDirection);
+
+        // 基于工作流方向进行推荐
+        RecommendationResult result = null;
+
         // 1. 基于组织关系的匹配（如果useOrg为true且orgId有值时）
         if (useOrg && currentUserOrgId != null && !currentUserOrgId.isEmpty()) {
-            RecommendationResult orgResult = recommendLeaderByOrganization(currentUserOrgId, currentUserAccount,
-                    taskTitle);
-            if (orgResult != null) {
-                // 检查是否在候选账号列表中
-                if (isInCandidateAccounts(orgResult.getLeaderAccount(), candidateAccounts)) {
-                    return orgResult;
-                } else {
-                    System.out.println("基于组织关系的推荐结果不在候选账号列表中，继续匹配");
+            Organization org = organizationService.getOrganizationById(currentUserOrgId);
+            if (org != null) {
+                switch (workflowDirection) {
+                    case DOWNWARD: // 向下指派：推荐同级组织分管领导
+                        if (currentUserAccount != null && !currentUserAccount.isEmpty() &&
+                                currentUserAccount.equals(org.getMainLeaderAccount()) &&
+                                org.getDeputyLeaderAccounts() != null && !org.getDeputyLeaderAccounts().isEmpty()) {
+                            // 如果当前用户是主管领导，则根据任务标题匹配最合适的分管领导
+                            String bestDeputyLeaderAccount = organizationService.findBestDeputyLeaderByTaskTitle(org,
+                                    taskTitle);
+                            if (bestDeputyLeaderAccount != null) {
+                                Leader deputyLeader = leaderService.getLeaderByAccount(bestDeputyLeaderAccount);
+                                if (deputyLeader != null) {
+                                    String reason = "向下指派：当前用户是" + org.getOrgName() +
+                                            "的主管领导，推荐该组织的分管领导，负责与任务相关的业务领域";
+                                    result = new RecommendationResult(deputyLeader.getAccount(),
+                                            deputyLeader.getName(), reason, 0.9);
+                                }
+                            }
+                        }
+                        break;
+
+                    case UPWARD: // 向上请示：直接推荐该组织的上级领导账号
+                        String superiorLeaderAccount = org.getSuperiorLeaderAccount();
+                        if (superiorLeaderAccount != null && !superiorLeaderAccount.isEmpty()) {
+                            Leader superiorLeader = leaderService.getLeaderByAccount(superiorLeaderAccount);
+                            if (superiorLeader != null) {
+                                String reason = "向上请示：直接推荐" + org.getOrgName() + "的上级领导";
+                                result = new RecommendationResult(superiorLeader.getAccount(),
+                                        superiorLeader.getName(), reason, 1.0);
+                            }
+                        }
+                        break;
+
+                    case PARALLEL: // 同级协办：推荐同级组织的其他领导
+                        // 如果当前用户是分管领导，则推荐其他分管领导
+                        if (currentUserAccount != null && !currentUserAccount.isEmpty() &&
+                                org.getDeputyLeaderAccounts() != null &&
+                                org.getDeputyLeaderAccounts().contains(currentUserAccount) &&
+                                org.getDeputyLeaderAccounts().size() > 1) {
+
+                            // 找到除当前用户以外的其他分管领导
+                            for (String deputyAccount : org.getDeputyLeaderAccounts()) {
+                                if (!deputyAccount.equals(currentUserAccount)) {
+                                    Leader deputyLeader = leaderService.getLeaderByAccount(deputyAccount);
+                                    if (deputyLeader != null) {
+                                        String reason = "同级协办：当前用户是" + org.getOrgName() +
+                                                "的分管领导，推荐该组织的其他分管领导";
+                                        result = new RecommendationResult(deputyAccount,
+                                                deputyLeader.getName(), reason, 0.8);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // 如果没有找到其他分管领导，则推荐主管领导
+                        if (result == null) {
+                            String mainLeaderAccount = org.getMainLeaderAccount();
+                            if (mainLeaderAccount != null && !mainLeaderAccount.isEmpty() &&
+                                    !mainLeaderAccount.equals(currentUserAccount)) {
+                                Leader mainLeader = leaderService.getLeaderByAccount(mainLeaderAccount);
+                                if (mainLeader != null) {
+                                    String reason = "同级协办：推荐" + org.getOrgName() + "的主管领导";
+                                    result = new RecommendationResult(mainLeader.getAccount(),
+                                            mainLeader.getName(), reason, 0.7);
+                                }
+                            }
+                        }
+                        break;
                 }
+            }
+        }
+
+        // 如果基于组织关系找到了推荐结果
+        if (result != null) {
+            // 检查是否在候选账号列表中
+            if (isInCandidateAccounts(result.getLeaderAccount(), candidateAccounts)) {
+                return result;
+            } else {
+                System.out.println("基于组织关系的推荐结果不在候选账号列表中，继续匹配");
             }
         }
 
@@ -107,15 +186,17 @@ public class RecommendationService {
      * @param currentUserAccount 当前办理人账号
      * @param currentUserOrgId   当前办理人组织ID
      * @param taskTitle          任务标题
+     * @param workflowDirection  工作流方向：向下指派(DOWNWARD)、向上请示(UPWARD)或同级协办(PARALLEL)
      * @param useOrg             是否使用组织关系
      * @return 推荐结果
      */
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
             String taskTitle,
+            WorkflowDirection workflowDirection,
             boolean useOrg) {
         // 调用带候选账号的方法，传入null表示不限制候选账号
-        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, useOrg, null);
+        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, workflowDirection, useOrg, null);
     }
 
     /**
@@ -129,8 +210,8 @@ public class RecommendationService {
     public RecommendationResult recommendLeader(String currentUserAccount,
             String currentUserOrgId,
             String taskTitle) {
-        // 默认使用组织关系，不限制候选账号
-        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, true, null);
+        // 默认使用组织关系，不限制候选账号，默认向上请示
+        return recommendLeader(currentUserAccount, currentUserOrgId, taskTitle, WorkflowDirection.UPWARD, true, null);
     }
 
     /**

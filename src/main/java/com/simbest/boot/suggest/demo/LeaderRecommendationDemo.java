@@ -7,6 +7,7 @@ import com.simbest.boot.suggest.model.Leader;
 import com.simbest.boot.suggest.model.Organization;
 import com.simbest.boot.suggest.model.RecommendationResult;
 import com.simbest.boot.suggest.model.ResponsibilityDomain;
+import com.simbest.boot.suggest.model.WorkflowDirection;
 import com.simbest.boot.suggest.service.DomainService;
 import com.simbest.boot.suggest.service.LeaderService;
 import com.simbest.boot.suggest.service.OrganizationService;
@@ -106,6 +107,36 @@ public class LeaderRecommendationDemo {
                 break;
             }
 
+            // 获取工作流方向
+            System.out.println("请选择工作流方向:");
+            System.out.println("1. 向下指派 (DOWNWARD)");
+            System.out.println("2. 向上请示 (UPWARD)");
+            System.out.println("3. 同级协办 (PARALLEL)");
+            System.out.print("请输入选项 (1-3): ");
+            String directionChoice = scanner.nextLine().trim();
+
+            // 检查是否退出
+            if ("exit".equalsIgnoreCase(directionChoice)) {
+                break;
+            }
+
+            // 解析工作流方向
+            WorkflowDirection workflowDirection;
+            switch (directionChoice) {
+                case "1":
+                    workflowDirection = WorkflowDirection.DOWNWARD;
+                    break;
+                case "2":
+                    workflowDirection = WorkflowDirection.UPWARD;
+                    break;
+                case "3":
+                    workflowDirection = WorkflowDirection.PARALLEL;
+                    break;
+                default:
+                    System.out.println("无效的选项，默认使用向上请示");
+                    workflowDirection = WorkflowDirection.UPWARD;
+            }
+
             // 如果输入为空，继续下一次循环
             if (currentUserAccount.isEmpty() || currentUserOrgId.isEmpty() || taskTitle.isEmpty()) {
                 System.out.println("输入不能为空，请重新输入");
@@ -113,10 +144,11 @@ public class LeaderRecommendationDemo {
             }
 
             System.out.println("\n=== 推荐结果 ===");
+            System.out.println("工作流方向: " + workflowDirection);
 
             // 获取推荐结果
             RecommendationResult result = recommendationService.recommendLeader(
-                    currentUserAccount, currentUserOrgId, taskTitle);
+                    currentUserAccount, currentUserOrgId, taskTitle, workflowDirection, true);
 
             // 显示推荐结果
             if (result != null) {

@@ -17,6 +17,7 @@ import com.simbest.boot.suggest.model.Leader;
 import com.simbest.boot.suggest.model.Organization;
 import com.simbest.boot.suggest.model.RecommendationResult;
 import com.simbest.boot.suggest.model.ResponsibilityDomain;
+import com.simbest.boot.suggest.model.WorkflowDirection;
 import com.simbest.boot.suggest.service.DomainService;
 import com.simbest.boot.suggest.service.LeaderService;
 import com.simbest.boot.suggest.service.OrganizationService;
@@ -28,7 +29,7 @@ import com.simbest.boot.suggest.util.ChineseTokenizer;
  * 提供领导推荐相关的REST API
  */
 @RestController
-@RequestMapping("/api/recommendation")
+@RequestMapping("/suggest")
 public class RecommendationController {
 
     @Autowired
@@ -49,6 +50,7 @@ public class RecommendationController {
      * @param userAccount       当前办理人账号（必填）
      * @param orgId             当前办理人组织ID（可选）
      * @param taskTitle         任务标题（必填）
+     * @param workflowDirection 工作流方向（必填）：向下指派(DOWNWARD)、向上请示(UPWARD)或同级协办(PARALLEL)
      * @param useOrg            是否使用组织关系（可选，默认为true）
      * @param candidateAccounts 候选账号列表（可选），如果提供，则推荐结果必须在此列表中
      * @return 推荐结果
@@ -58,12 +60,14 @@ public class RecommendationController {
             @RequestParam(required = true) String userAccount,
             @RequestParam(required = false) String orgId,
             @RequestParam String taskTitle,
+            @RequestParam(required = true) WorkflowDirection workflowDirection,
             @RequestParam(required = false, defaultValue = "true") boolean useOrg,
             @RequestParam(required = false) String[] candidateAccounts) {
         System.out.println("\n\n=== 推荐请求 ===\n");
         System.out.println("用户账号: " + userAccount);
         System.out.println("组织ID: " + (orgId != null ? orgId : "未提供"));
         System.out.println("任务标题: " + taskTitle);
+        System.out.println("工作流方向: " + workflowDirection);
         System.out.println("使用组织关系: " + useOrg);
         System.out.println("候选账号列表: " + (candidateAccounts != null ? String.join(", ", candidateAccounts) : "未提供"));
 
@@ -103,6 +107,7 @@ public class RecommendationController {
                 userAccount,
                 orgId != null ? orgId : "",
                 taskTitle,
+                workflowDirection,
                 useOrg,
                 candidateAccounts);
         System.out.println("\n推荐结果: " + (result != null ? result : "无推荐结果"));
