@@ -59,4 +59,6 @@ target/
 build/
 logs/
 .cursorindexingignore
-.specstory/.what-is-this.md
+.specstory/
+boot_app_logs/
+node_modules/
