@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>智能领导推荐系统测试报告</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333366; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr.pass { background-color: #dff0d8; }
+        tr.fail { background-color: #f2dede; }
+        tr.skip { background-color: #fcf8e3; }
+        .summary { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>智能领导推荐系统测试报告</h1>
+    <p>生成时间: ${timestamp}</p>
+    
+    <h2>测试套件: ${testSuiteName}</h2>
+    
+    <div class="summary">
+        <h3>测试摘要</h3>
+        <p>总测试数: ${totalTests}</p>
+        <p>通过: ${passedTests}</p>
+        <p>失败: ${failedTests}</p>
+        <p>跳过: ${skippedTests}</p>
+    </div>
+    
+    <h3>测试详情</h3>
+    ${testDetails}
+    
+    <h2>测试总结</h2>
+    <p>总测试数: ${totalTests}</p>
+    <p>通过: ${passedTests}</p>
+    <p>失败: ${failedTests}</p>
+    <p>跳过: ${skippedTests}</p>
+</body>
+</html>

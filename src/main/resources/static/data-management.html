@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>领导推荐系统 - 数据管理</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+        .navbar {
+            margin-bottom: 20px;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .action-buttons {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">领导推荐系统 - 数据管理</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">数据管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/suggest">返回主页</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="domains-tab" data-bs-toggle="tab" data-bs-target="#domains" type="button" role="tab">职责领域</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="organizations-tab" data-bs-toggle="tab" data-bs-target="#organizations" type="button" role="tab">组织</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="leaders-tab" data-bs-toggle="tab" data-bs-target="#leaders" type="button" role="tab">领导</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mappings-tab" data-bs-toggle="tab" data-bs-target="#mappings" type="button" role="tab">领域到领导映射</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="common-words-tab" data-bs-toggle="tab" data-bs-target="#common-words" type="button" role="tab">常用词</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="synonym-groups-tab" data-bs-toggle="tab" data-bs-target="#synonym-groups" type="button" role="tab">同义词组</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <!-- 职责领域 -->
+            <div class="tab-pane fade show active" id="domains" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3>职责领域管理</h3>
+                    <button class="btn btn-primary" onclick="showDomainModal()">添加职责领域</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>领域ID</th>
+                                <th>领域名称</th>
+                                <th>领导账号</th>
+                                <th>租户代码</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="domains-table-body">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 组织 -->
+            <div class="tab-pane fade" id="organizations" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3>组织管理</h3>
+                    <button class="btn btn-primary" onclick="showOrganizationModal()">添加组织</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>组织ID</th>
+                                <th>组织名称</th>
+                                <th>父组织ID</th>
+                                <th>主管领导账号</th>
+                                <th>上级领导账号</th>
+                                <th>组织类型</th>
+                                <th>租户代码</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="organizations-table-body">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 领导 -->
+            <div class="tab-pane fade" id="leaders" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3>领导管理</h3>
+                    <button class="btn btn-primary" onclick="showLeaderModal()">添加领导</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>账号</th>
+                                <th>姓名</th>
+                                <th>租户代码</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaders-table-body">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 领域到领导映射 -->
+            <div class="tab-pane fade" id="mappings" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3>领域到领导映射管理</h3>
+                    <button class="btn btn-primary" onclick="showMappingModal()">添加映射</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>领域名称</th>
+                                <th>领导账号</th>
+                                <th>租户代码</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mappings-table-body">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 常用词 -->
+            <div class="tab-pane fade" id="common-words" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3>常用词管理</h3>
+                    <button class="btn btn-primary" onclick="showCommonWordModal()">添加常用词</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>词语</th>
+                                <th>类别</th>
+                                <th>租户代码</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="common-words-table-body">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 同义词组 -->
+            <div class="tab-pane fade" id="synonym-groups" role="tabpanel">
+                <div class="d-flex justify-content-between mb-3">
+                    <h3>同义词组管理</h3>
+                    <button class="btn btn-primary" onclick="showSynonymGroupModal()">添加同义词组</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>类别</th>
+                                <th>同义词组</th>
+                                <th>租户代码</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="synonym-groups-table-body">
+                            <!-- 数据将通过JavaScript动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框将通过JavaScript动态创建 -->
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 基础URL
+        const baseUrl = '/suggest/api/data';
+
+        // 当前租户代码
+        let currentTenantCode = 'default';
+
+        // 页面加载完成后执行
+        $(document).ready(function() {
+            // 加载所有数据
+            loadDomains();
+            loadOrganizations();
+            loadLeaders();
+            loadMappings();
+            loadCommonWords();
+            loadSynonymGroups();
+
+            // 监听标签页切换事件
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                const target = $(e.target).attr('data-bs-target');
+                switch (target) {
+                    case '#domains':
+                        loadDomains();
+                        break;
+                    case '#organizations':
+                        loadOrganizations();
+                        break;
+                    case '#leaders':
+                        loadLeaders();
+                        break;
+                    case '#mappings':
+                        loadMappings();
+                        break;
+                    case '#common-words':
+                        loadCommonWords();
+                        break;
+                    case '#synonym-groups':
+                        loadSynonymGroups();
+                        break;
+                }
+            });
+        });
+
+        // 加载职责领域数据
+        function loadDomains() {
+            $.ajax({
+                url: `${baseUrl}/domains?tenantCode=${currentTenantCode}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.errcode === 0 && response.data) {
+                        const domains = response.data;
+                        let html = '';
+                        domains.forEach(domain => {
+                            html += `
+                                <tr>
+                                    <td>${domain.id}</td>
+                                    <td>${domain.domainId}</td>
+                                    <td>${domain.domainName}</td>
+                                    <td>${domain.leaderAccount || '-'}</td>
+                                    <td>${domain.tenantCode || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" onclick="editDomain(${domain.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteDomain(${domain.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#domains-table-body').html(html);
+                    } else {
+                        alert('加载职责领域数据失败');
+                    }
+                },
+                error: function() {
+                    alert('加载职责领域数据失败');
+                }
+            });
+        }
+
+        // 加载组织数据
+        function loadOrganizations() {
+            $.ajax({
+                url: `${baseUrl}/organizations?tenantCode=${currentTenantCode}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.errcode === 0 && response.data) {
+                        const organizations = response.data;
+                        let html = '';
+                        organizations.forEach(org => {
+                            html += `
+                                <tr>
+                                    <td>${org.id}</td>
+                                    <td>${org.orgId}</td>
+                                    <td>${org.orgName}</td>
+                                    <td>${org.parentOrgId || '-'}</td>
+                                    <td>${org.mainLeaderAccount || '-'}</td>
+                                    <td>${org.superiorLeaderAccount || '-'}</td>
+                                    <td>${org.orgType || '-'}</td>
+                                    <td>${org.tenantCode || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" onclick="editOrganization(${org.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteOrganization(${org.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#organizations-table-body').html(html);
+                    } else {
+                        alert('加载组织数据失败');
+                    }
+                },
+                error: function() {
+                    alert('加载组织数据失败');
+                }
+            });
+        }
+
+        // 加载领导数据
+        function loadLeaders() {
+            $.ajax({
+                url: `${baseUrl}/leaders?tenantCode=${currentTenantCode}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.errcode === 0 && response.data) {
+                        const leaders = response.data;
+                        let html = '';
+                        leaders.forEach(leader => {
+                            html += `
+                                <tr>
+                                    <td>${leader.id}</td>
+                                    <td>${leader.account}</td>
+                                    <td>${leader.name}</td>
+                                    <td>${leader.tenantCode || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" onclick="editLeader(${leader.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteLeader(${leader.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#leaders-table-body').html(html);
+                    } else {
+                        alert('加载领导数据失败');
+                    }
+                },
+                error: function() {
+                    alert('加载领导数据失败');
+                }
+            });
+        }
+
+        // 加载领域到领导映射数据
+        function loadMappings() {
+            $.ajax({
+                url: `${baseUrl}/mappings?tenantCode=${currentTenantCode}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.errcode === 0 && response.data) {
+                        const mappings = response.data;
+                        let html = '';
+                        mappings.forEach(mapping => {
+                            html += `
+                                <tr>
+                                    <td>${mapping.id}</td>
+                                    <td>${mapping.domainName}</td>
+                                    <td>${mapping.leaderAccount}</td>
+                                    <td>${mapping.tenantCode || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" onclick="editMapping(${mapping.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteMapping(${mapping.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#mappings-table-body').html(html);
+                    } else {
+                        alert('加载领域到领导映射数据失败');
+                    }
+                },
+                error: function() {
+                    alert('加载领域到领导映射数据失败');
+                }
+            });
+        }
+
+        // 加载常用词数据
+        function loadCommonWords() {
+            $.ajax({
+                url: `${baseUrl}/common-words?tenantCode=${currentTenantCode}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.errcode === 0 && response.data) {
+                        const commonWords = response.data;
+                        let html = '';
+                        commonWords.forEach(word => {
+                            html += `
+                                <tr>
+                                    <td>${word.id}</td>
+                                    <td>${word.word}</td>
+                                    <td>${word.category || '-'}</td>
+                                    <td>${word.tenantCode || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" onclick="editCommonWord(${word.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteCommonWord(${word.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#common-words-table-body').html(html);
+                    } else {
+                        alert('加载常用词数据失败');
+                    }
+                },
+                error: function() {
+                    alert('加载常用词数据失败');
+                }
+            });
+        }
+
+        // 加载同义词组数据
+        function loadSynonymGroups() {
+            $.ajax({
+                url: `${baseUrl}/synonym-groups?tenantCode=${currentTenantCode}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.errcode === 0 && response.data) {
+                        const synonymGroups = response.data;
+                        let html = '';
+                        synonymGroups.forEach(group => {
+                            html += `
+                                <tr>
+                                    <td>${group.id}</td>
+                                    <td>${group.category || '-'}</td>
+                                    <td>${group.synonymWords}</td>
+                                    <td>${group.tenantCode || '-'}</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-primary" onclick="editSynonymGroup(${group.id})">编辑</button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteSynonymGroup(${group.id})">删除</button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#synonym-groups-table-body').html(html);
+                    } else {
+                        alert('加载同义词组数据失败');
+                    }
+                },
+                error: function() {
+                    alert('加载同义词组数据失败');
+                }
+            });
+        }
+
+        // 以下是各种操作函数的实现（添加、编辑、删除等）
+        // 由于篇幅限制，这里只提供基本框架，实际实现需要根据需求进行扩展
+
+        // 显示职责领域模态框
+        function showDomainModal(domain = null) {
+            alert('显示职责领域模态框，用于添加或编辑职责领域');
+            // 实际实现需要创建模态框并显示
+        }
+
+        // 编辑职责领域
+        function editDomain(id) {
+            alert('编辑职责领域，ID: ' + id);
+            // 实际实现需要获取职责领域数据并显示模态框
+        }
+
+        // 删除职责领域
+        function deleteDomain(id) {
+            if (confirm('确定要删除该职责领域吗？')) {
+                $.ajax({
+                    url: `${baseUrl}/domains/${id}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.errcode === 0) {
+                            alert('删除成功');
+                            loadDomains();
+                        } else {
+                            alert('删除失败');
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败');
+                    }
+                });
+            }
+        }
+
+        // 显示组织模态框
+        function showOrganizationModal(organization = null) {
+            alert('显示组织模态框，用于添加或编辑组织');
+            // 实际实现需要创建模态框并显示
+        }
+
+        // 编辑组织
+        function editOrganization(id) {
+            alert('编辑组织，ID: ' + id);
+            // 实际实现需要获取组织数据并显示模态框
+        }
+
+        // 删除组织
+        function deleteOrganization(id) {
+            if (confirm('确定要删除该组织吗？')) {
+                $.ajax({
+                    url: `${baseUrl}/organizations/${id}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.errcode === 0) {
+                            alert('删除成功');
+                            loadOrganizations();
+                        } else {
+                            alert('删除失败');
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败');
+                    }
+                });
+            }
+        }
+
+        // 显示领导模态框
+        function showLeaderModal(leader = null) {
+            alert('显示领导模态框，用于添加或编辑领导');
+            // 实际实现需要创建模态框并显示
+        }
+
+        // 编辑领导
+        function editLeader(id) {
+            alert('编辑领导，ID: ' + id);
+            // 实际实现需要获取领导数据并显示模态框
+        }
+
+        // 删除领导
+        function deleteLeader(id) {
+            if (confirm('确定要删除该领导吗？')) {
+                $.ajax({
+                    url: `${baseUrl}/leaders/${id}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.errcode === 0) {
+                            alert('删除成功');
+                            loadLeaders();
+                        } else {
+                            alert('删除失败');
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败');
+                    }
+                });
+            }
+        }
+
+        // 显示映射模态框
+        function showMappingModal(mapping = null) {
+            alert('显示映射模态框，用于添加或编辑映射');
+            // 实际实现需要创建模态框并显示
+        }
+
+        // 编辑映射
+        function editMapping(id) {
+            alert('编辑映射，ID: ' + id);
+            // 实际实现需要获取映射数据并显示模态框
+        }
+
+        // 删除映射
+        function deleteMapping(id) {
+            if (confirm('确定要删除该映射吗？')) {
+                $.ajax({
+                    url: `${baseUrl}/mappings/${id}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.errcode === 0) {
+                            alert('删除成功');
+                            loadMappings();
+                        } else {
+                            alert('删除失败');
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败');
+                    }
+                });
+            }
+        }
+
+        // 显示常用词模态框
+        function showCommonWordModal(commonWord = null) {
+            alert('显示常用词模态框，用于添加或编辑常用词');
+            // 实际实现需要创建模态框并显示
+        }
+
+        // 编辑常用词
+        function editCommonWord(id) {
+            alert('编辑常用词，ID: ' + id);
+            // 实际实现需要获取常用词数据并显示模态框
+        }
+
+        // 删除常用词
+        function deleteCommonWord(id) {
+            if (confirm('确定要删除该常用词吗？')) {
+                $.ajax({
+                    url: `${baseUrl}/common-words/${id}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.errcode === 0) {
+                            alert('删除成功');
+                            loadCommonWords();
+                        } else {
+                            alert('删除失败');
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败');
+                    }
+                });
+            }
+        }
+
+        // 显示同义词组模态框
+        function showSynonymGroupModal(synonymGroup = null) {
+            alert('显示同义词组模态框，用于添加或编辑同义词组');
+            // 实际实现需要创建模态框并显示
+        }
+
+        // 编辑同义词组
+        function editSynonymGroup(id) {
+            alert('编辑同义词组，ID: ' + id);
+            // 实际实现需要获取同义词组数据并显示模态框
+        }
+
+        // 删除同义词组
+        function deleteSynonymGroup(id) {
+            if (confirm('确定要删除该同义词组吗？')) {
+                $.ajax({
+                    url: `${baseUrl}/synonym-groups/${id}`,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.errcode === 0) {
+                            alert('删除成功');
+                            loadSynonymGroups();
+                        } else {
+                            alert('删除失败');
+                        }
+                    },
+                    error: function() {
+                        alert('删除失败');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

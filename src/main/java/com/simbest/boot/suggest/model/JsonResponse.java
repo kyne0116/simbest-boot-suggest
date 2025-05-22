@@ -94,6 +94,11 @@ public class JsonResponse<T> {
     private T data;
 
     /**
+     * 操作是否成功
+     */
+    private Boolean success;
+
+    /**
      * 创建默认成功响应
      *
      * @return 成功响应对象，errcode=0，status=200
@@ -101,7 +106,7 @@ public class JsonResponse<T> {
     @SuppressWarnings("unchecked")
     public static <T> JsonResponse<T> defaultSuccessResponse() {
         return (JsonResponse<T>) JsonResponse.builder().errcode(SUCCESS_CODE).timestamp(new Date())
-                .status(SUCCESS_STATUS).build();
+                .status(SUCCESS_STATUS).success(true).build();
     }
 
     /**
@@ -112,7 +117,7 @@ public class JsonResponse<T> {
     @SuppressWarnings("unchecked")
     public static <T> JsonResponse<T> defaultErrorResponse() {
         JsonResponse<T> jsonResponse = (JsonResponse<T>) JsonResponse.builder().errcode(ERROR_CODE).message("未知错误")
-                .timestamp(new Date()).status(ERROR_STATUS).build();
+                .timestamp(new Date()).status(ERROR_STATUS).success(false).build();
         return jsonResponse;
     }
 
@@ -125,6 +130,7 @@ public class JsonResponse<T> {
     public static <T> JsonResponse<T> success(T obj) {
         JsonResponse<T> response = defaultSuccessResponse();
         response.setData(obj);
+        response.setSuccess(true);
         return response;
     }
 
@@ -137,6 +143,7 @@ public class JsonResponse<T> {
     public static <T> JsonResponse<T> fail(T obj) {
         JsonResponse<T> response = defaultErrorResponse();
         response.setData(obj);
+        response.setSuccess(false);
         return response;
     }
 
@@ -149,6 +156,7 @@ public class JsonResponse<T> {
     public static <T> JsonResponse<T> success(String message) {
         JsonResponse<T> response = defaultSuccessResponse();
         response.setMessage(message);
+        response.setSuccess(true);
         return response;
     }
 
@@ -161,6 +169,7 @@ public class JsonResponse<T> {
     public static <T> JsonResponse<T> fail(String message) {
         JsonResponse<T> response = defaultErrorResponse();
         response.setMessage(message);
+        response.setSuccess(false);
         return response;
     }
 
@@ -175,6 +184,7 @@ public class JsonResponse<T> {
         JsonResponse<T> response = defaultSuccessResponse();
         response.setData(obj);
         response.setMessage(message);
+        response.setSuccess(true);
         return response;
     }
 
@@ -207,6 +217,19 @@ public class JsonResponse<T> {
     }
 
     /**
+     * 创建带错误信息的失败响应
+     *
+     * @param message 错误信息
+     * @return 失败响应对象，包含错误信息
+     */
+    public static <T> JsonResponse<T> error(String message) {
+        JsonResponse<T> response = defaultErrorResponse();
+        response.setMessage(message);
+        response.setSuccess(false);
+        return response;
+    }
+
+    /**
      * 创建未授权响应（无参数）
      *
      * @return 未授权响应对象，status=401
@@ -218,6 +241,7 @@ public class JsonResponse<T> {
                 .error(HttpStatus.UNAUTHORIZED.name())
                 .message(ACCESS_FORBIDDEN)
                 .timestamp(new Date())
+                .success(false)
                 .build();
         log.warn("无权限访问，即将返回【{}】", toJson(response));
         return response;
@@ -237,6 +261,7 @@ public class JsonResponse<T> {
                 .error(exception.getMessage())
                 .timestamp(new Date())
                 .message(ACCESS_FORBIDDEN)
+                .success(false)
                 /**
                  * 注释该代码，避免系统路径信息泄露
                  *
@@ -257,6 +282,7 @@ public class JsonResponse<T> {
         return (JsonResponse<T>) JsonResponse.builder().errcode(SUCCESS_CODE)
                 .status(HttpStatus.OK.value())
                 .error(HttpStatus.OK.name())
+                .success(true)
                 .build();
     }
 
@@ -268,7 +294,12 @@ public class JsonResponse<T> {
      */
     private static String toJson(Object obj) {
         try {
-            return new ObjectMapper().writeValueAsString(obj);
+            ObjectMapper mapper = new ObjectMapper();
+            // 设置序列化配置
+            mapper.configure(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            // 使用UTF-8编码确保中文字符正确显示
+            byte[] jsonBytes = mapper.writeValueAsBytes(obj);
+            return new String(jsonBytes, java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("转换对象到JSON失败", e);
             return obj.toString();

@@ -1,0 +1,40 @@
+{
+  "semanticComplexity": {
+    "baseValue": 0.3,
+    "wordLengthFactor": 0.1,
+    "wordCountFactor": 0.02,
+    "maxComplexity": 0.95
+  },
+  "sentiment": {
+    "positive": {
+      "baseValue": 0.1,
+      "randomRange": 0.4
+    },
+    "neutral": {
+      "baseValue": 0.3,
+      "randomRange": 0.4
+    },
+    "negative": {
+      "baseValue": 0.1,
+      "randomRange": 0.2
+    },
+    "urgent": {
+      "keywords": ["紧急", "重要", "急需", "立即"],
+      "baseValue": 0.1,
+      "matchedBaseValue": 0.8,
+      "randomRange": 0.2
+    }
+  },
+  "leaderMatch": {
+    "baseScore": 0.6,
+    "randomRange": 0.4
+  },
+  "historicalEfficiency": {
+    "baseValue": 0.7,
+    "randomRange": 0.3
+  },
+  "domainExpertise": {
+    "baseValue": 0.5,
+    "randomRange": 0.5
+  }
+}

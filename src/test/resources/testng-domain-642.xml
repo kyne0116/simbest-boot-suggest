@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="智能领导推荐系统测试套件">
+  <parameter name="baseUrl" value="http://localhost"/>
+  <parameter name="port" value="12345"/>
+  <listeners>
+    <listener class-name="com.simbest.boot.suggest.test.report.TestReportGenerator"/>
+  </listeners>
+  <test name="6.4.2职责领域测试">
+    <classes>
+      <class name="com.simbest.boot.suggest.test.DomainTest642"/>
+    </classes>
+  </test>
+</suite>

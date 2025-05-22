@@ -1,29 +1,12 @@
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-# Windows Installer files
-*.cab
-*.msi
-*.msm
-*.msp
-
-# Windows shortcuts
-*.lnk
-
 # =========================
 # Operating System Files
 # =========================
 
+# Windows files (removed - Mac-only development)
+# Kept for reference in case of future cross-platform development
+
 # OSX
 # =========================
-
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -38,6 +21,7 @@ $RECYCLE.BIN/
 .TemporaryItems
 .Trashes
 .VolumeIcon.icns
+.com.apple.timemachine.donotpresent
 
 # Directories potentially created on remote AFP share
 .AppleDB
@@ -46,19 +30,186 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Java project ignore files
+# =========================
+# IDE Files
+# =========================
+# Eclipse
 .classpath
 .project
-.gradle
-.idea
-.settings
-.vscode
+.settings/
+.factorypath
+
+# IntelliJ IDEA
+.idea/
 *.iml
-*.log
+*.iws
+*.ipr
+*.iws
+.idea_modules/
+out/
+
+# Visual Studio Code
+.vscode/
+.history/
+*.code-workspace
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# =========================
+# Java/Maven/Gradle
+# =========================
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
 target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
 build/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# Log files
+*.log
 logs/
-.cursorindexingignore
-.specstory/
 boot_app_logs/
+
+# =========================
+# Spring Boot
+# =========================
+.spring.boot.classpath
+.springBeans
+spring-test/test-output/
+.sts4-cache/
+
+# =========================
+# Node.js
+# =========================
 node_modules/
+dist/
+coverage/
+.nyc_output/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# =========================
+# Test Results
+# =========================
+test-output/
+test-results/
+playwright-report/
+pacts/
+surefire-reports/
+failsafe-reports/
+
+# =========================
+# Database
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+h2db/
+*.h2.db
+*.trace.db
+*.lock.db
+
+# 数据库迁移和版本控制相关
+**/db/migration/
+**/db/default/
+**/db/upgrade/
+**/db/patch/
+**/db/version/
+**/db/fix/
+
+# =========================
+# Environment Variables & Configuration
+# =========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Application properties (uncomment if containing sensitive data)
+# application-dev.properties
+# application-prod.properties
+# application-test.properties
+# application-local.properties
+# application-debug.properties
+
+# Configuration files
+*.conf
+*.config
+*.cfg
+
+# =========================
+# Project Specific
+# =========================
+.cursorindexingignore
+.specstory/.what-is-this.md
+
+# Temporary and backup files
+*~
+*.bak
+*.swp
+*.tmp
+*.temp
+
+# Excel and CSV files (data files)
+# Uncomment if you don't want to track these
+# *.xlsx
+# *.xls
+# *.csv
+
+# Generated documentation
+javadoc/
+apidocs/
+
+# Generated SQL scripts
+# *.sql
+
+# Generated shell scripts
+# Uncomment if you don't want to track these
+# *.sh
+
+# Test output
+test-output/
+
+# Application logs
+boot_app_logs/
+
+# Windows specific files (removed - Mac-only development)
+*.bat
+*.cmd
+*.exe
+*.dll
+*.vbs
+*.reg

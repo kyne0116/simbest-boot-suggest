@@ -1,0 +1,29 @@
+{
+  "organizationMatch": {
+    "mainLeaderToDeputyScore": 0.9,
+    "deputyLeaderToMainScore": 0.85,
+    "peerLeaderScore": 0.8,
+    "defaultScore": 0.75
+  },
+  "domainMatch": {
+    "directMatchScore": 0.95,
+    "keywordMatchScore": 0.85,
+    "defaultScore": 0.7
+  },
+  "historyMatch": {
+    "directMatchScore": 0.9,
+    "patternMatchScore": 0.85,
+    "defaultScore": 0.7
+  },
+  "textSimilarityMatch": {
+    "highSimilarityScore": 0.8,
+    "mediumSimilarityScore": 0.7,
+    "lowSimilarityScore": 0.6
+  },
+  "recommendationReasons": {
+    "organizationReason": "【规则1-基于组织关系匹配】当前用户是{orgName}的{userRole}，推荐该组织的{targetRole}，负责与任务相关的业务领域",
+    "historyReason": "【历史批复模式匹配】系统通过分析历史批复记录，发现该任务与{patternName}模式高度匹配。该模式下，此领导是最常处理此类任务的审批人",
+    "domainReason": "【职责领域匹配】系统通过关键词匹配，发现该任务与此领导的职责领域{domainName}高度相关，匹配关键词：{keywords}",
+    "textSimilarityReason": "【AI文本语义分析】系统通过自然语言处理和语义向量计算，发现该任务与此领导的职责领域存在高度语义关联。推荐基于深度学习的文本理解模型和多维相似度算法"
+  }
+}

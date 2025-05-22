@@ -1,0 +1,23 @@
+[
+  {
+    "tenantCode": "default",
+    "tenantName": "默认租户",
+    "description": "系统默认租户",
+    "active": true,
+    "createdBy": "system"
+  },
+  {
+    "tenantCode": "tenant1",
+    "tenantName": "租户1",
+    "description": "示例租户1",
+    "active": true,
+    "createdBy": "system"
+  },
+  {
+    "tenantCode": "tenant2",
+    "tenantName": "租户2",
+    "description": "示例租户2",
+    "active": true,
+    "createdBy": "system"
+  }
+]

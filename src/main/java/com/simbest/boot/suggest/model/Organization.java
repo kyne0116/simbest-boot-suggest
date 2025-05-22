@@ -22,4 +22,6 @@ public class Organization {
     private List<String> deputyLeaderAccounts = new ArrayList<>(); // 分管领导账号列表
     private String superiorLeaderAccount; // 上级领导账号（该组织直接向谁汇报）
     private String orgType; // 组织类型：DEPARTMENT(部门)、DIVISION(处室)等
+    private List<String> keywords = new ArrayList<>(); // 组织关键字列表
+    private List<Double> keywordWeights = new ArrayList<>(); // 组织关键字权重列表
 }

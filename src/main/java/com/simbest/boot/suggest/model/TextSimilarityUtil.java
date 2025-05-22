@@ -202,8 +202,9 @@ public class TextSimilarityUtil {
      * @param text1 文本1
      * @param text2 文本2
      * @return 基于分词的Jaccard相似度（0-1之间）
+     * @throws java.io.IOException 如果初始化分词器失败
      */
-    public static double calculateTokenJaccardSimilarity(String text1, String text2) {
+    public static double calculateTokenJaccardSimilarity(String text1, String text2) throws java.io.IOException {
         if (text1 == null || text2 == null || text1.isEmpty() || text2.isEmpty()) {
             return 0.0;
         }
@@ -234,8 +235,9 @@ public class TextSimilarityUtil {
      * @param text1 文本1
      * @param text2 文本2
      * @return 基于分词的余弦相似度（0-1之间）
+     * @throws java.io.IOException 如果初始化分词器失败
      */
-    public static double calculateTokenCosineSimilarity(String text1, String text2) {
+    public static double calculateTokenCosineSimilarity(String text1, String text2) throws java.io.IOException {
         if (text1 == null || text2 == null || text1.isEmpty() || text2.isEmpty()) {
             return 0.0;
         }
@@ -290,8 +292,9 @@ public class TextSimilarityUtil {
      * @param text1 文本1
      * @param text2 文本2
      * @return 基于分词的综合相似度（0-1之间）
+     * @throws java.io.IOException 如果初始化分词器或同义词表失败
      */
-    public static double calculateTokenOverallSimilarity(String text1, String text2) {
+    public static double calculateTokenOverallSimilarity(String text1, String text2) throws java.io.IOException {
         if (text1 == null || text2 == null || text1.isEmpty() || text2.isEmpty()) {
             return 0.0;
         }
@@ -330,8 +333,9 @@ public class TextSimilarityUtil {
      * @param text1 文本1
      * @param text2 文本2
      * @return 最终综合相似度（0-1之间）
+     * @throws java.io.IOException 如果初始化分词器或同义词表失败
      */
-    public static double calculateFinalSimilarity(String text1, String text2) {
+    public static double calculateFinalSimilarity(String text1, String text2) throws java.io.IOException {
         if (text1 == null || text2 == null || text1.isEmpty() || text2.isEmpty()) {
             return 0.0;
         }

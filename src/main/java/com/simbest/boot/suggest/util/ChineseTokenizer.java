@@ -31,48 +31,59 @@ public class ChineseTokenizer {
             return;
         }
 
-        try {
-            // 从配置文件中加载分词器配置
-            Map<String, Object> tokenizerConfig = DataLoader.getAlgorithmWeightSection("tokenizer");
-            if (tokenizerConfig.containsKey("maxWordLength")) {
-                maxWordLength = ((Number) tokenizerConfig.get("maxWordLength")).intValue();
-                log.info("已加载分词器最大词长配置: {}", maxWordLength);
-            }
+        // 从配置文件中加载分词器配置
+        Map<String, Object> tokenizerConfig = DataLoader.getAlgorithmWeightSection("tokenizer");
+        if (tokenizerConfig.containsKey("maxWordLength")) {
+            maxWordLength = ((Number) tokenizerConfig.get("maxWordLength")).intValue();
+            log.info("已加载分词器最大词长配置: {}", maxWordLength);
+        }
 
-            // 从资源文件加载词典
-            InputStream is = ChineseTokenizer.class.getResourceAsStream("/dictionary.txt");
-            if (is != null) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        if (!line.isEmpty()) {
-                            dictionary.add(line);
-                        }
+        // 从资源文件加载词典
+        InputStream is = ChineseTokenizer.class.getResourceAsStream("/dictionary.txt");
+        if (is != null) {
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (!line.isEmpty()) {
+                        dictionary.add(line);
                     }
                 }
+            } catch (IOException e) {
+                log.error("加载词典文件失败: {}", e.getMessage());
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        log.error("关闭词典文件读取器失败: {}", e.getMessage());
+                    }
+                }
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    log.error("关闭词典文件输入流失败: {}", e.getMessage());
+                }
             }
-
-            // 添加一些常用词
-            addCommonWords();
-
-            isInitialized = true;
-        } catch (IOException e) {
-            log.error("加载词典失败: {}", e.getMessage(), e);
         }
+
+        // 添加一些常用词
+        addCommonWords();
+
+        isInitialized = true;
     }
 
     /**
      * 添加常用词
+     *
+     * 注意：常用词已迁移到数据库，该方法已不再从配置文件加载
+     * 常用词应通过DatabaseDataLoader.loadCommonWords()方法加载
      */
     private static void addCommonWords() {
-        // 从配置文件加载常用词
-        List<String> commonWords = DataLoader.loadCommonWords();
-
-        // 添加到词典
-        for (String word : commonWords) {
-            dictionary.add(word);
-        }
+        // 常用词已迁移到数据库，该方法不再从配置文件加载
+        log.info("常用词已迁移到数据库，请使用DatabaseDataLoader.loadCommonWords()方法加载");
     }
 
     /**

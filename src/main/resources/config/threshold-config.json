@@ -1,5 +1,5 @@
 {
-  "baseThreshold": 0.01,
+  "baseThreshold": 0.2,
   "lengthThresholds": [
     {
       "length": 20,

@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,62 +24,58 @@ public class SynonymManager {
 
     /**
      * 初始化同义词表
+     *
+     * @throws IOException 如果加载同义词文件失败
      */
-    public static synchronized void initialize() {
+    public static synchronized void initialize() throws IOException {
         if (isInitialized) {
             return;
         }
 
-        try {
-            // 从资源文件加载同义词
-            InputStream is = SynonymManager.class.getResourceAsStream("/synonyms.txt");
-            if (is != null) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        line = line.trim();
-                        if (!line.isEmpty()) {
-                            String[] words = line.split(",");
-                            if (words.length > 1) {
-                                for (String word : words) {
-                                    word = word.trim();
-                                    if (!word.isEmpty()) {
-                                        Set<String> wordSynonyms = new HashSet<>();
-                                        for (String other : words) {
-                                            other = other.trim();
-                                            if (!other.isEmpty() && !other.equals(word)) {
-                                                wordSynonyms.add(other);
-                                            }
+        // 从资源文件加载同义词
+        InputStream is = SynonymManager.class.getResourceAsStream("/synonyms.txt");
+        if (is != null) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (!line.isEmpty()) {
+                        String[] words = line.split(",");
+                        if (words.length > 1) {
+                            for (String word : words) {
+                                word = word.trim();
+                                if (!word.isEmpty()) {
+                                    Set<String> wordSynonyms = new HashSet<>();
+                                    for (String other : words) {
+                                        other = other.trim();
+                                        if (!other.isEmpty() && !other.equals(word)) {
+                                            wordSynonyms.add(other);
                                         }
-                                        synonyms.put(word, wordSynonyms);
                                     }
+                                    synonyms.put(word, wordSynonyms);
                                 }
                             }
                         }
                     }
                 }
             }
-
-            // 添加一些常用同义词
-            addCommonSynonyms();
-
-            isInitialized = true;
-        } catch (IOException e) {
-            log.error("加载同义词表失败: {}", e.getMessage(), e);
         }
+
+        // 添加一些常用同义词
+        addCommonSynonyms();
+
+        isInitialized = true;
     }
 
     /**
      * 添加常用同义词
+     *
+     * 注意：同义词组已迁移到数据库，该方法已不再从配置文件加载
+     * 同义词组应通过DatabaseDataLoader.loadCommonSynonyms()方法加载
      */
     private static void addCommonSynonyms() {
-        // 从配置文件加载同义词组
-        List<String> synonymGroups = DataLoader.loadCommonSynonyms();
-
-        // 添加同义词组
-        for (String group : synonymGroups) {
-            addSynonyms(group);
-        }
+        // 同义词组已迁移到数据库，该方法不再从配置文件加载
+        log.info("同义词组已迁移到数据库，请使用DatabaseDataLoader.loadCommonSynonyms()方法加载");
     }
 
     /**
@@ -115,8 +110,9 @@ public class SynonymManager {
      *
      * @param word 词语
      * @return 同义词集合
+     * @throws IOException 如果初始化同义词表失败
      */
-    public static Set<String> getSynonyms(String word) {
+    public static Set<String> getSynonyms(String word) throws IOException {
         if (!isInitialized) {
             initialize();
         }
@@ -129,8 +125,9 @@ public class SynonymManager {
      * @param word1 词语1
      * @param word2 词语2
      * @return 是否是同义词
+     * @throws IOException 如果初始化同义词表失败
      */
-    public static boolean areSynonyms(String word1, String word2) {
+    public static boolean areSynonyms(String word1, String word2) throws IOException {
         if (word1 == null || word2 == null || word1.isEmpty() || word2.isEmpty()) {
             return false;
         }

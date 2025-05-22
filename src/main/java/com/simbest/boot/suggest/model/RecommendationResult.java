@@ -1,20 +1,19 @@
 package com.simbest.boot.suggest.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.simbest.boot.suggest.util.JsonUtil;
 
 /**
  * 推荐结果模型类
- * 表示一个推荐结果，包含推荐的领导账号、推荐理由和匹配分数
- * 以及AI智能分析指标
+ * 表示一个推荐结果，包含推荐的领导列表和AI智能分析指标
+ * 注意：推荐理由、匹配分数、AI置信度和推荐类型已移至LeaderDTO类中
  */
 public class RecommendationResult {
-    private String leaderAccount; // 推荐的领导账号
-    private String leaderName; // 推荐的领导姓名
-    private String reason; // 推荐理由
-    private double score; // 匹配分数
-    private double confidenceLevel; // AI置信度
-    private String recommendationType; // 推荐类型
+    private List<LeaderDTO> leaders = new ArrayList<>(); // 推荐的领导列表
     private Map<String, Double> aiMetrics = new HashMap<>(); // AI分析指标
 
     /**
@@ -25,11 +24,10 @@ public class RecommendationResult {
      * @param score         匹配分数
      */
     public RecommendationResult(String leaderAccount, String reason, double score) {
-        this.leaderAccount = leaderAccount;
-        this.reason = reason;
-        this.score = score;
-        this.confidenceLevel = calculateConfidenceLevel(score);
-        this.recommendationType = determineRecommendationType(reason);
+        double confidenceLevel = calculateConfidenceLevel(score);
+        String recommendationType = determineRecommendationType(reason);
+        LeaderDTO leader = new LeaderDTO(leaderAccount, null, reason, score, confidenceLevel, recommendationType);
+        this.leaders.add(leader);
         initializeAiMetrics(score);
     }
 
@@ -42,121 +40,195 @@ public class RecommendationResult {
      * @param score         匹配分数
      */
     public RecommendationResult(String leaderAccount, String leaderName, String reason, double score) {
-        this.leaderAccount = leaderAccount;
-        this.leaderName = leaderName;
-        this.reason = reason;
-        this.score = score;
-        this.confidenceLevel = calculateConfidenceLevel(score);
-        this.recommendationType = determineRecommendationType(reason);
+        double confidenceLevel = calculateConfidenceLevel(score);
+        String recommendationType = determineRecommendationType(reason);
+        LeaderDTO leader = new LeaderDTO(leaderAccount, leaderName, reason, score, confidenceLevel, recommendationType);
+        this.leaders.add(leader);
         initializeAiMetrics(score);
     }
 
     /**
-     * 获取推荐的领导账号
+     * 构造函数
      *
-     * @return 领导账号
+     * @param leaders 推荐的领导列表
+     * @param reason  推荐理由
+     * @param score   匹配分数
      */
-    public String getLeaderAccount() {
-        return leaderAccount;
+    public RecommendationResult(List<LeaderDTO> leaders, String reason, double score) {
+        // 如果传入的领导列表中没有设置推荐信息，则设置相同的推荐信息
+        double confidenceLevel = calculateConfidenceLevel(score);
+        String recommendationType = determineRecommendationType(reason);
+
+        for (LeaderDTO leader : leaders) {
+            if (leader.getReason() == null) {
+                leader.setReason(reason);
+            }
+            if (leader.getScore() == 0) {
+                leader.setScore(score);
+            }
+            if (leader.getConfidenceLevel() == 0) {
+                leader.setConfidenceLevel(confidenceLevel);
+            }
+            if (leader.getRecommendationType() == null) {
+                leader.setRecommendationType(recommendationType);
+            }
+        }
+
+        this.leaders.addAll(leaders);
+        initializeAiMetrics(score);
     }
 
     /**
-     * 设置推荐的领导账号
+     * 获取推荐的领导列表
      *
-     * @param leaderAccount 领导账号
+     * @return 领导列表
      */
-    public void setLeaderAccount(String leaderAccount) {
-        this.leaderAccount = leaderAccount;
+    public List<LeaderDTO> getLeaders() {
+        return leaders;
     }
 
     /**
-     * 获取推荐的领导姓名
+     * 设置推荐的领导列表
      *
-     * @return 领导姓名
+     * @param leaders 领导列表
      */
-    public String getLeaderName() {
-        return leaderName;
+    public void setLeaders(List<LeaderDTO> leaders) {
+        this.leaders = leaders;
     }
 
     /**
-     * 设置推荐的领导姓名
+     * 添加推荐的领导
      *
-     * @param leaderName 领导姓名
+     * @param leader 领导DTO对象
      */
-    public void setLeaderName(String leaderName) {
-        this.leaderName = leaderName;
+    public void addLeader(LeaderDTO leader) {
+        this.leaders.add(leader);
+    }
+
+    /**
+     * 添加推荐的领导
+     *
+     * @param account 领导账号
+     * @param name    领导姓名
+     */
+    public void addLeader(String account, String name) {
+        this.leaders.add(new LeaderDTO(account, name));
     }
 
     /**
      * 获取推荐理由
+     * 注意：返回第一个领导的推荐理由，兼容旧版本接口
      *
      * @return 推荐理由
      */
     public String getReason() {
-        return reason;
+        if (leaders != null && !leaders.isEmpty() && leaders.get(0) != null) {
+            String reason = leaders.get(0).getReason();
+            // 使用JsonUtil.ensureUtf8Encoding确保推荐理由使用UTF-8编码，避免乱码问题
+            try {
+                return JsonUtil.ensureUtf8Encoding(reason);
+            } catch (Exception e) {
+                // 如果转换失败，则使用原始理由
+                return reason;
+            }
+        }
+        return null;
     }
 
     /**
      * 设置推荐理由
+     * 注意：设置所有领导的推荐理由，兼容旧版本接口
      *
      * @param reason 推荐理由
      */
     public void setReason(String reason) {
-        this.reason = reason;
+        // 使用JsonUtil.ensureUtf8Encoding确保推荐理由使用UTF-8编码，避免乱码问题
+        try {
+            String encodedReason = JsonUtil.ensureUtf8Encoding(reason);
+            for (LeaderDTO leader : leaders) {
+                leader.setReason(encodedReason);
+            }
+        } catch (Exception e) {
+            // 如果转换失败，则使用原始理由
+            for (LeaderDTO leader : leaders) {
+                leader.setReason(reason);
+            }
+        }
     }
 
     /**
      * 获取匹配分数
+     * 注意：返回第一个领导的匹配分数，兼容旧版本接口
      *
      * @return 匹配分数
      */
     public double getScore() {
-        return score;
+        if (leaders != null && !leaders.isEmpty() && leaders.get(0) != null) {
+            return leaders.get(0).getScore();
+        }
+        return 0.0;
     }
 
     /**
      * 设置匹配分数
+     * 注意：设置所有领导的匹配分数，兼容旧版本接口
      *
      * @param score 匹配分数
      */
     public void setScore(double score) {
-        this.score = score;
+        for (LeaderDTO leader : leaders) {
+            leader.setScore(score);
+        }
     }
 
     /**
      * 获取AI置信度
+     * 注意：返回第一个领导的AI置信度，兼容旧版本接口
      *
      * @return AI置信度
      */
     public double getConfidenceLevel() {
-        return confidenceLevel;
+        if (leaders != null && !leaders.isEmpty() && leaders.get(0) != null) {
+            return leaders.get(0).getConfidenceLevel();
+        }
+        return 0.0;
     }
 
     /**
      * 设置AI置信度
+     * 注意：设置所有领导的AI置信度，兼容旧版本接口
      *
      * @param confidenceLevel AI置信度
      */
     public void setConfidenceLevel(double confidenceLevel) {
-        this.confidenceLevel = confidenceLevel;
+        for (LeaderDTO leader : leaders) {
+            leader.setConfidenceLevel(confidenceLevel);
+        }
     }
 
     /**
      * 获取推荐类型
+     * 注意：返回第一个领导的推荐类型，兼容旧版本接口
      *
      * @return 推荐类型
      */
     public String getRecommendationType() {
-        return recommendationType;
+        if (leaders != null && !leaders.isEmpty() && leaders.get(0) != null) {
+            return leaders.get(0).getRecommendationType();
+        }
+        return null;
     }
 
     /**
      * 设置推荐类型
+     * 注意：设置所有领导的推荐类型，兼容旧版本接口
      *
      * @param recommendationType 推荐类型
      */
     public void setRecommendationType(String recommendationType) {
-        this.recommendationType = recommendationType;
+        for (LeaderDTO leader : leaders) {
+            leader.setRecommendationType(recommendationType);
+        }
     }
 
     /**
@@ -238,33 +310,56 @@ public class RecommendationResult {
     public String generateDetailedAIReport() {
         StringBuilder sb = new StringBuilder();
         sb.append("\n=== 智能领导推荐系统分析报告 ===\n")
-                .append("\n【推荐结果】")
-                .append("\n  推荐领导: ")
-                .append(leaderName != null ? leaderName + " (" + leaderAccount + ")" : leaderAccount)
-                .append("\n  推荐理由: ").append(reason)
-                .append("\n\n【智能分析指标】")
-                .append("\n  推荐类型: ").append(recommendationType)
-                .append("\n  AI置信度: ").append(String.format("%.2f%%", confidenceLevel * 100))
-                .append("\n  匹配分数: ").append(String.format("%.2f", score));
+                .append("\n【推荐结果】");
 
-        sb.append("\n\n【语义分析结果】");
-        for (Map.Entry<String, Double> entry : aiMetrics.entrySet()) {
-            sb.append("\n  ").append(entry.getKey()).append(": ")
-                    .append(String.format("%.2f%%", entry.getValue() * 100));
+        // 添加推荐领导信息
+        if (!leaders.isEmpty()) {
+            sb.append("\n  推荐领导: ");
+            for (int i = 0; i < leaders.size(); i++) {
+                LeaderDTO leader = leaders.get(i);
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(leader.getSuggestTruename() != null
+                        ? leader.getSuggestTruename() + " (" + leader.getSuggestAccount() + ")"
+                        : leader.getSuggestAccount());
+            }
+
+            // 获取第一个领导的推荐信息
+            LeaderDTO firstLeader = leaders.get(0);
+            String reason = firstLeader.getReason();
+            String recommendationType = firstLeader.getRecommendationType();
+            double confidenceLevel = firstLeader.getConfidenceLevel();
+            double score = firstLeader.getScore();
+
+            sb.append("\n  推荐理由: ").append(reason)
+                    .append("\n\n【智能分析指标】")
+                    .append("\n  推荐类型: ").append(recommendationType)
+                    .append("\n  AI置信度: ").append(String.format("%.2f%%", confidenceLevel * 100))
+                    .append("\n  匹配分数: ").append(String.format("%.2f", score));
+
+            sb.append("\n\n【语义分析结果】");
+            for (Map.Entry<String, Double> entry : aiMetrics.entrySet()) {
+                sb.append("\n  ").append(entry.getKey()).append(": ")
+                        .append(String.format("%.2f%%", entry.getValue() * 100));
+            }
+
+            // 添加一些模拟的深度学习分析结果
+            double randomFactor = Math.random() * 0.1 + 0.85; // 85%-95%的随机值
+            sb.append("\n\n【深度学习分析】")
+                    .append("\n  任务复杂度评估: ").append(String.format("%.2f%%", score * 100 * 0.9))
+                    .append("\n  处理时间预估: ").append(String.format("%.1f", 1 + Math.random() * 3)).append("天")
+                    .append("\n  知识图谱匹配度: ").append(String.format("%.2f%%", confidenceLevel * 100 * randomFactor))
+                    .append("\n  语义理解编码: ").append(generateRandomCode())
+                    .append("\n\n【推荐结论】")
+                    .append("\n  基于对任务内容的深度分析和历史数据学习，系统认为该领导是处理此类任务的最佳选择。")
+                    .append("\n  该推荐结果综合考虑了组织结构、职责领域和任务内容的语义关联性。");
+        } else {
+            sb.append("\n  推荐领导: 无")
+                    .append("\n  推荐理由: 无匹配的领导");
         }
 
-        // 添加一些模拟的深度学习分析结果
-        double randomFactor = Math.random() * 0.1 + 0.85; // 85%-95%的随机值
-        sb.append("\n\n【深度学习分析】")
-                .append("\n  任务复杂度评估: ").append(String.format("%.2f%%", score * 100 * 0.9))
-                .append("\n  处理时间预估: ").append(String.format("%.1f", 1 + Math.random() * 3)).append("天")
-                .append("\n  知识图谱匹配度: ").append(String.format("%.2f%%", confidenceLevel * 100 * randomFactor))
-                .append("\n  语义理解编码: ").append(generateRandomCode())
-                .append("\n\n【推荐结论】")
-                .append("\n  基于对任务内容的深度分析和历史数据学习，系统认为该领导是处理此类任务的最佳选择。")
-                .append("\n  该推荐结果综合考虑了组织结构、职责领域和任务内容的语义关联性。")
-                .append("\n\n=== 报告结束 ===\n");
-
+        sb.append("\n\n=== 报告结束 ===\n");
         return sb.toString();
     }
 
@@ -285,12 +380,33 @@ public class RecommendationResult {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("推荐领导: ").append(leaderName != null ? leaderName + " (" + leaderAccount + ")" : leaderAccount)
-                .append("\n推荐理由: ").append(reason)
-                .append("\n匹配分数: ").append(String.format("%.2f", score))
-                .append("\nAI置信度: ").append(String.format("%.2f%%", confidenceLevel * 100))
-                .append("\n推荐类型: ").append(recommendationType)
-                .append("\nAI分析指标: ");
+        sb.append("推荐领导: ");
+
+        // 添加推荐领导信息
+        if (!leaders.isEmpty()) {
+            for (int i = 0; i < leaders.size(); i++) {
+                LeaderDTO leader = leaders.get(i);
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(leader.getSuggestTruename() != null
+                        ? leader.getSuggestTruename() + " (" + leader.getSuggestAccount() + ")"
+                        : leader.getSuggestAccount());
+            }
+
+            // 获取第一个领导的推荐信息
+            LeaderDTO firstLeader = leaders.get(0);
+
+            sb.append("\n推荐理由: ").append(firstLeader.getReason())
+                    .append("\n匹配分数: ").append(String.format("%.2f", firstLeader.getScore()))
+                    .append("\nAI置信度: ").append(String.format("%.2f%%", firstLeader.getConfidenceLevel() * 100))
+                    .append("\n推荐类型: ").append(firstLeader.getRecommendationType())
+                    .append("\nAI分析指标: ");
+        } else {
+            sb.append("无")
+                    .append("\n推荐理由: 无匹配的领导")
+                    .append("\nAI分析指标: ");
+        }
 
         for (Map.Entry<String, Double> entry : aiMetrics.entrySet()) {
             sb.append("\n  - ").append(entry.getKey()).append(": ")

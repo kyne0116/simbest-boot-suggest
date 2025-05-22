@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.simbest.boot.suggest.util.ChineseTokenizer;
 import com.simbest.boot.suggest.util.DataLoader;
-import com.simbest.boot.suggest.util.SynonymManager;
+import com.simbest.boot.suggest.util.SynonymManagerAdapter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,50 +26,38 @@ import lombok.extern.slf4j.Slf4j;
 public class ResponsibilityDomain {
     private String domainId; // 领域ID
     private String domainName; // 领域名称
-    private String responsiblePerson; // 负责人
     private List<String> keywords = new ArrayList<>(); // 关键词列表
     private String description; // 领域描述
-    private String leaderAccount; // 负责人账号
 
     /**
      * 构造函数
      *
-     * @param domainId          领域ID
-     * @param domainName        领域名称
-     * @param responsiblePerson 负责人
-     * @param description       领域描述
+     * @param domainId    领域ID
+     * @param domainName  领域名称
+     * @param description 领域描述
      */
-    public ResponsibilityDomain(String domainId, String domainName, String responsiblePerson, String description) {
+    public ResponsibilityDomain(String domainId, String domainName, String description) {
         this.domainId = domainId;
         this.domainName = domainName;
-        this.responsiblePerson = responsiblePerson;
         this.description = description;
     }
 
     /**
      * 构造函数
      *
-     * @param domainName        领域名称
-     * @param responsiblePerson 负责人
-     * @param description       领域描述
+     * @param domainName  领域名称
+     * @param description 领域描述
      */
-    public ResponsibilityDomain(String domainName, String responsiblePerson, String description) {
+    public ResponsibilityDomain(String domainName, String description) {
         // 从配置文件中获取领域ID前缀
         String prefix;
-        try {
-            // 尝试从配置文件中获取前缀
-            Map<String, Object> domainConfig = DataLoader.getAlgorithmWeightSection("domainId");
-            prefix = domainConfig.containsKey("prefix") ? (String) domainConfig.get("prefix") : "domain_";
-            log.debug("从配置文件中获取领域ID前缀: {}", prefix);
-        } catch (Exception e) {
-            // 如果出错，使用默认前缀
-            prefix = "domain_";
-            log.warn("从配置文件中获取领域ID前缀失败，使用默认前缀: {}", prefix, e);
-        }
+        // 尝试从配置文件中获取前缀
+        Map<String, Object> domainConfig = DataLoader.getAlgorithmWeightSection("domainId");
+        prefix = domainConfig.containsKey("prefix") ? (String) domainConfig.get("prefix") : "domain_";
+        log.debug("从配置文件中获取领域ID前缀: {}", prefix);
 
         this.domainId = prefix + System.currentTimeMillis(); // 生成一个临时ID
         this.domainName = domainName;
-        this.responsiblePerson = responsiblePerson;
         this.description = description;
         log.debug("创建新的职责领域: {}, ID: {}", domainName, domainId);
     }
@@ -98,8 +86,9 @@ public class ResponsibilityDomain {
      *
      * @param text 输入文本
      * @return 匹配度分数（0-1之间）
+     * @throws java.io.IOException 如果初始化分词器或同义词表失败
      */
-    public double calculateMatchScore(String text) {
+    public double calculateMatchScore(String text) throws java.io.IOException {
         if (text == null || text.isEmpty() || keywords.isEmpty()) {
             return 0.0;
         }
@@ -143,6 +132,11 @@ public class ResponsibilityDomain {
         // 初始化关键词权重
         Map<String, Double> keywordWeights = new HashMap<>();
         for (String keyword : keywords) {
+            // 检查关键词是否为null
+            if (keyword == null) {
+                log.warn("关键词为null，跳过");
+                continue;
+            }
             // 关键词长度越长，权重越高
             double weight = keywordWeightBase + (keywordLengthFactor * Math.min(keyword.length(), keywordMaxLength));
             keywordWeights.put(keyword, weight);
@@ -153,6 +147,12 @@ public class ResponsibilityDomain {
 
         // 计算匹配的关键词
         for (String keyword : keywords) {
+            // 检查关键词是否为null
+            if (keyword == null) {
+                log.warn("关键词为null，跳过");
+                continue;
+            }
+
             // 直接匹配
             boolean directMatch = text.contains(keyword);
 
@@ -161,7 +161,7 @@ public class ResponsibilityDomain {
 
             // 同义词匹配
             boolean synonymMatch = false;
-            Set<String> synonyms = SynonymManager.getSynonyms(keyword);
+            Set<String> synonyms = SynonymManagerAdapter.getSynonyms(keyword);
             for (String token : textTokens) {
                 if (synonyms.contains(token)) {
                     synonymMatch = true;
@@ -172,7 +172,10 @@ public class ResponsibilityDomain {
             // 如果任一方式匹配成功
             if (directMatch || tokenMatch || synonymMatch) {
                 matchedKeywordsCount++;
-                double matchWeight = keywordWeights.get(keyword);
+
+                // 获取关键词权重，如果不存在则使用默认值
+                Double weightObj = keywordWeights.get(keyword);
+                double matchWeight = (weightObj != null) ? weightObj : keywordWeightBase;
 
                 // 如果是直接匹配，给予更高权重
                 if (directMatch) {
@@ -194,14 +197,20 @@ public class ResponsibilityDomain {
         }
 
         // 计算匹配度
-        double keywordCountRatio = (double) matchedKeywordsCount / keywords.size();
+        double keywordCountRatio = 0.0;
+        if (keywords.size() > 0) {
+            keywordCountRatio = (double) matchedKeywordsCount / keywords.size();
+        }
 
         // 计算加权分数
         double totalWeight = 0.0;
         for (double weight : keywordWeights.values()) {
             totalWeight += weight;
         }
-        double weightedRatio = weightedMatchScore / totalWeight;
+        double weightedRatio = 0.0;
+        if (totalWeight > 0.0) {
+            weightedRatio = weightedMatchScore / totalWeight;
+        }
 
         // 综合评分
         return keywordCountRatioWeight * keywordCountRatio + weightedRatioWeight * weightedRatio;
@@ -212,8 +221,9 @@ public class ResponsibilityDomain {
      *
      * @param text 输入文本
      * @return 匹配的关键词列表
+     * @throws java.io.IOException 如果初始化分词器或同义词表失败
      */
-    public List<String> getMatchedKeywords(String text) {
+    public List<String> getMatchedKeywords(String text) throws java.io.IOException {
         List<String> matchedKeywords = new ArrayList<>();
 
         if (text == null || text.isEmpty()) {
@@ -224,6 +234,12 @@ public class ResponsibilityDomain {
         List<String> textTokens = ChineseTokenizer.tokenize(text);
 
         for (String keyword : keywords) {
+            // 检查关键词是否为null
+            if (keyword == null) {
+                log.warn("关键词为null，跳过");
+                continue;
+            }
+
             // 直接匹配
             boolean directMatch = text.contains(keyword);
 
@@ -232,7 +248,7 @@ public class ResponsibilityDomain {
 
             // 同义词匹配
             boolean synonymMatch = false;
-            Set<String> synonyms = SynonymManager.getSynonyms(keyword);
+            Set<String> synonyms = SynonymManagerAdapter.getSynonyms(keyword);
             for (String token : textTokens) {
                 if (synonyms.contains(token)) {
                     synonymMatch = true;
@@ -257,28 +273,6 @@ public class ResponsibilityDomain {
         }
 
         return matchedKeywords;
-    }
-
-    /**
-     * 获取负责人账号
-     *
-     * @return 负责人账号
-     */
-    public String getLeaderAccount() {
-        // 如果已设置leaderAccount，直接返回
-        if (leaderAccount != null && !leaderAccount.isEmpty()) {
-            return leaderAccount;
-        }
-
-        // 从配置文件中加载领域到领导账号的映射
-        Map<String, String> domainLeaderMapping = DataLoader.loadDomainLeaderMapping();
-
-        // 根据领域名称获取负责人账号
-        if (domainLeaderMapping.containsKey(domainName)) {
-            return domainLeaderMapping.get(domainName);
-        }
-
-        return null;
     }
 
 }
