@@ -79,49 +79,49 @@ VALUES
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'IT_PLANNING', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('zhangxinpeng') AND p.tenant_code = 'default';
+WHERE p.account IN ('user004') AND p.tenant_code = 'default';
 
 -- 数据治理领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'DATA_GOVERNANCE', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('zhaobin1') AND p.tenant_code = 'default';
+WHERE p.account IN ('user005') AND p.tenant_code = 'default';
 
 -- 网络安全领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'NETWORK_SECURITY', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('xuhuiyun') AND p.tenant_code = 'default';
+WHERE p.account IN ('user013') AND p.tenant_code = 'default';
 
 -- 政企市场领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'ENTERPRISE_MARKET', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('baiyu', 'zhangyifei') AND p.tenant_code = 'default';
+WHERE p.account IN ('user019', 'user020') AND p.tenant_code = 'default';
 
 -- 计费账务领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'BILLING', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('zhangyaohua1') AND p.tenant_code = 'default';
+WHERE p.account IN ('user006') AND p.tenant_code = 'default';
 
 -- 人力资源管理领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'HR_MANAGEMENT', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('wangmin', 'liuqiang') AND p.tenant_code = 'default';
+WHERE p.account IN ('user025', 'user026') AND p.tenant_code = 'default';
 
 -- 综合事务领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'GENERAL_AFFAIRS', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('zhangwei', 'chenli') AND p.tenant_code = 'default';
+WHERE p.account IN ('user030', 'user031') AND p.tenant_code = 'default';
 
 -- 财务管理领域关联人员
 INSERT INTO personnel_responsibility_domain (personnel_id, domain_id, tenant_code, create_time, created_by)
 SELECT p.id, 'FINANCE_MANAGEMENT', 'default', NOW(), 'system'
 FROM personnel p
-WHERE p.account IN ('linjing', 'zhaojun') AND p.tenant_code = 'default';
+WHERE p.account IN ('user035', 'user036') AND p.tenant_code = 'default';
 
 -- 4. 添加职责领域与组织关联
 -- 政企市场领域关联组织

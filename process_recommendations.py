@@ -70,7 +70,7 @@ def main():
 
                 # 根据账号设置领导姓名
                 leader_name = ''
-                if leader_account == 'zhaobin1':
+                if leader_account == 'zb1':
                     leader_name = '赵斌'
                 elif leader_account == 'zhangyaohua1':
                     leader_name = '张耀华'

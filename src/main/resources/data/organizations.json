@@ -12,8 +12,8 @@
     "orgId": "dept001",
     "orgName": "信息技术管理部",
     "parentOrgId": "company001",
-    "mainLeaderAccount": "zhangxinpeng",
-    "deputyLeaderAccounts": ["zhangyaohua1", "xuhuiyun", "zhaobin1"],
+    "mainLeaderAccount": "zxpzong",
+    "deputyLeaderAccounts": ["zhangyaohua1", "xuhuiyun", "zb1"],
     "superiorLeaderAccount": "ceo001",
     "orgType": "DEPARTMENT"
   },
@@ -21,8 +21,8 @@
     "orgId": "dept002",
     "orgName": "政企事业部",
     "parentOrgId": "company001",
-    "mainLeaderAccount": "baiyu",
-    "deputyLeaderAccounts": ["zhangyifei", "zhaowanli"],
+    "mainLeaderAccount": "yuzong",
+    "deputyLeaderAccounts": ["zqf", "zhaowanli"],
     "superiorLeaderAccount": "ceo001",
     "orgType": "DEPARTMENT"
   },
@@ -32,7 +32,7 @@
     "parentOrgId": "dept001",
     "mainLeaderAccount": "zhangyaohua1",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
@@ -41,7 +41,7 @@
     "parentOrgId": "dept001",
     "mainLeaderAccount": "zhangyaohua1",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
@@ -50,7 +50,7 @@
     "parentOrgId": "dept001",
     "mainLeaderAccount": "zhangyaohua1",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
@@ -59,43 +59,43 @@
     "parentOrgId": "dept001",
     "mainLeaderAccount": "xuhuiyun",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
     "orgId": "div005",
     "orgName": "运营管理室",
     "parentOrgId": "dept001",
-    "mainLeaderAccount": "zhaobin1",
+    "mainLeaderAccount": "zb1",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
     "orgId": "div006",
     "orgName": "管理信息系统室",
     "parentOrgId": "dept001",
-    "mainLeaderAccount": "zhaobin1",
+    "mainLeaderAccount": "zb1",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
     "orgId": "div007",
     "orgName": "政企业务支撑室",
     "parentOrgId": "dept001",
-    "mainLeaderAccount": "zhaobin1",
+    "mainLeaderAccount": "zb1",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "zhangxinpeng",
+    "superiorLeaderAccount": "zxpzong",
     "orgType": "DIVISION"
   },
   {
     "orgId": "div008",
     "orgName": "政企市场部",
     "parentOrgId": "dept002",
-    "mainLeaderAccount": "zhangyifei",
+    "mainLeaderAccount": "zqf",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "baiyu",
+    "superiorLeaderAccount": "yuzong",
     "orgType": "DIVISION"
   },
   {
@@ -104,7 +104,7 @@
     "parentOrgId": "dept002",
     "mainLeaderAccount": "zhaowanli",
     "deputyLeaderAccounts": [],
-    "superiorLeaderAccount": "baiyu",
+    "superiorLeaderAccount": "yuzong",
     "orgType": "DIVISION"
   }
 ]

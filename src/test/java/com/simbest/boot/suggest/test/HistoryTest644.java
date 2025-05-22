@@ -45,7 +45,7 @@ public class HistoryTest644 {
         String createHistoryBody = "{\n" +
                 "  \"taskId\": \"test-task-001\",\n" +
                 "  \"taskTitle\": \"关于市场营销策略调整的通知\",\n" +
-                "  \"approverAccount\": \"zhangyifei\",\n" +
+                "  \"approverAccount\": \"zqf\",\n" +
                 "  \"initiatorAccount\": \"lixuanang\",\n" +
                 "  \"initiatorOrgId\": \"team_marketing\",\n" +
                 "  \"tenantCode\": \"default\"\n" +
@@ -161,7 +161,7 @@ public class HistoryTest644 {
             boolean containsHistoryLeader = false;
             for (Object item : leaders) {
                 Map<String, Object> recommendation = (Map<String, Object>) item;
-                if ("zhangyifei".equals(recommendation.get("suggestAccount"))) {
+                if ("zqf".equals(recommendation.get("suggestAccount"))) {
                     String reason = (String) recommendation.get("reason");
                     if (reason != null && reason.contains("历史")) {
                         containsHistoryLeader = true;

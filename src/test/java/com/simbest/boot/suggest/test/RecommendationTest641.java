@@ -36,19 +36,19 @@ public class RecommendationTest641 {
     }
 
     /**
-     * 6.4.1.1.1 渠道管理室向上推荐测试
-     * 测试渠道管理室作为起始组织的推荐
+     * 6.4.1.1.1 信息技术部领导向下推荐测试
+     * 测试信息技术部领导向下推荐
      */
     @Test
     public void test_6_4_1_1_1_ChannelDepartmentUpwardRecommendation() {
-        System.out.println("执行测试用例6.4.1.1.1: 渠道管理室向上推荐测试");
+        System.out.println("执行测试用例6.4.1.1.1: 信息技术部领导向下推荐测试");
 
         String requestBody = "{\n" +
                 "  \"taskTitle\": \"关于迎接集团公司政企大客户行为规范培训的通知\",\n" +
                 "  \"recommendationType\": \"MULTIPLE\",\n" +
-                "  \"workflowDirection\": \"UPWARD\",\n" +
-                "  \"userAccount\": null,\n" +
-                "  \"orgId\": \"team_channel\",\n" +
+                "  \"workflowDirection\": \"DOWNWARD\",\n" +
+                "  \"userAccount\": \"user004\",\n" +
+                "  \"orgId\": null,\n" +
                 "  \"tenantCode\": \"default\",\n" +
                 "  \"candidateAccounts\": null\n" +
                 "}";
@@ -107,7 +107,7 @@ public class RecommendationTest641 {
                 "  \"taskTitle\": \"关于迎接集团公司政企大客户行为规范培训的通知\",\n" +
                 "  \"recommendationType\": \"MULTIPLE\",\n" +
                 "  \"workflowDirection\": \"UPWARD\",\n" +
-                "  \"userAccount\": \"lixuanang\",\n" +
+                "  \"userAccount\": \"user023\",\n" +
                 "  \"orgId\": null,\n" +
                 "  \"tenantCode\": \"default\",\n" +
                 "  \"candidateAccounts\": null\n" +
@@ -230,7 +230,7 @@ public class RecommendationTest641 {
                 "  \"userAccount\": null,\n" +
                 "  \"orgId\": \"team_security\",\n" +
                 "  \"tenantCode\": \"default\",\n" +
-                "  \"candidateAccounts\": [\"zhaobin1\", \"zhangyifei\", \"zhangxinpeng\"]\n" +
+                "  \"candidateAccounts\": [\"user005\", \"user020\", \"user004\"]\n" +
                 "}";
 
         try {
@@ -264,7 +264,7 @@ public class RecommendationTest641 {
                 Map<String, Object> recommendation = (Map<String, Object>) item;
                 String account = (String) recommendation.get("suggestAccount");
                 Assert.assertTrue(
-                        account.equals("zhaobin1") || account.equals("zhangyifei") || account.equals("zhangxinpeng"),
+                        account.equals("user005") || account.equals("user020") || account.equals("user004"),
                         "推荐结果应只包含指定的候选人");
             }
         } catch (Exception e) {
@@ -337,7 +337,7 @@ public class RecommendationTest641 {
                 "  \"taskTitle\": \"关于部门年度预算编制的通知\",\n" +
                 "  \"recommendationType\": \"SINGLE\",\n" +
                 "  \"workflowDirection\": \"UPWARD\",\n" +
-                "  \"userAccount\": \"zhangxinpeng\",\n" +
+                "  \"userAccount\": \"user004\",\n" +
                 "  \"orgId\": null,\n" +
                 "  \"tenantCode\": \"default\",\n" +
                 "  \"candidateAccounts\": null\n" +
@@ -372,7 +372,7 @@ public class RecommendationTest641 {
             // 验证只返回一个推荐结果（单选模式）
             Assert.assertEquals(leaders.size(), 1, "单选模式应只返回一个推荐结果");
 
-            // 验证推荐的领导是zhangxinpeng的上级领导
+            // 验证推荐的领导是user004的上级领导
             Map<String, Object> recommendation = (Map<String, Object>) leaders.get(0);
             Assert.assertTrue(recommendation.containsKey("suggestAccount"), "推荐结果应包含领导账号");
             // 注意：这里我们不能确定具体的账号，因为可能会根据实际数据变化

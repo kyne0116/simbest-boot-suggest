@@ -157,7 +157,7 @@ public class RecommendationTestSuite {
                 "  \"userAccount\": null,\n" +
                 "  \"orgId\": \"team_security\",\n" +
                 "  \"tenantCode\": \"default\",\n" +
-                "  \"candidateAccounts\": [\"zhaobin1\", \"zhangyifei\", \"zhangxinpeng\"]\n" +
+                "  \"candidateAccounts\": [\"zb1\", \"zqf\", \"zxpzong\"]\n" +
                 "}";
 
         Response response = given()
@@ -178,7 +178,7 @@ public class RecommendationTestSuite {
         for (Object item : response.jsonPath().getList("data")) {
             String account = ((Map<String, Object>) item).get("userAccount").toString();
             Assert.assertTrue(
-                    account.equals("zhaobin1") || account.equals("zhangyifei") || account.equals("zhangxinpeng"),
+                    account.equals("zb1") || account.equals("zqf") || account.equals("zxpzong"),
                     "推荐结果应只包含候选人列表中的用户");
         }
     }
@@ -255,7 +255,7 @@ public class RecommendationTestSuite {
         Assert.assertEquals(response.jsonPath().getList("data").size(), 1, "应只返回一个推荐结果");
 
         // 验证推荐结果是基于指定用户的上级领导
-        // 这里假设wangfei的上级领导是zhangxinpeng
+        // 这里假设wangfei的上级领导是zxpzong
         String recommendedLeader = response.jsonPath().getString("data[0].userAccount");
         Assert.assertTrue(recommendedLeader != null && !recommendedLeader.isEmpty(), "应返回有效的领导账号");
     }

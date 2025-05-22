@@ -148,12 +148,12 @@ WHERE domain_id = 'FINANCE_MANAGEMENT' AND tenant_code = 'default';
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
 SELECT id, 'IT_PLANNING', 1
 FROM leader
-WHERE account = 'zhangxinpeng' AND tenant_code = 'default';
+WHERE account = 'zxpzong' AND tenant_code = 'default';
 
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
 SELECT id, 'DATA_GOVERNANCE', 1
 FROM leader
-WHERE account = 'zhaobin1' AND tenant_code = 'default';
+WHERE account = 'zb1' AND tenant_code = 'default';
 
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
 SELECT id, 'BILLING', 1
@@ -164,12 +164,12 @@ WHERE account = 'zhangyaohua1' AND tenant_code = 'default';
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
 SELECT id, 'ENTERPRISE_MARKET', 1
 FROM leader
-WHERE account = 'baiyu' AND tenant_code = 'default';
+WHERE account = 'yuzong' AND tenant_code = 'default';
 
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
 SELECT id, 'ENTERPRISE_MARKET', 1
 FROM leader
-WHERE account = 'zhangyifei' AND tenant_code = 'default';
+WHERE account = 'zqf' AND tenant_code = 'default';
 
 -- 人力部领导
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
@@ -207,11 +207,11 @@ WHERE account = 'zhaojun' AND tenant_code = 'default';
 -- 4. 添加领域领导映射
 INSERT INTO domain_leader_mapping (domain_name, leader_account, tenant_code, create_time, created_by)
 VALUES
-('IT规划', 'zhangxinpeng', 'default', NOW(), 'system'),
-('数据治理', 'zhaobin1', 'default', NOW(), 'system'),
+('IT规划', 'zxpzong', 'default', NOW(), 'system'),
+('数据治理', 'zb1', 'default', NOW(), 'system'),
 ('网络安全', 'xuhuiyun', 'default', NOW(), 'system'),
-('政企市场', 'baiyu', 'default', NOW(), 'system'),
-('政企市场', 'zhangyifei', 'default', NOW(), 'system'),
+('政企市场', 'yuzong', 'default', NOW(), 'system'),
+('政企市场', 'zqf', 'default', NOW(), 'system'),
 ('计费账务', 'zhangyaohua1', 'default', NOW(), 'system'),
 ('人力资源管理', 'wangmin', 'default', NOW(), 'system'),
 ('人力资源管理', 'liuqiang', 'default', NOW(), 'system'),

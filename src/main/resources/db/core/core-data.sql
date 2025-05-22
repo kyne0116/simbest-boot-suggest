@@ -152,17 +152,17 @@ DELETE FROM leader WHERE tenant_code = 'default';
 -- 公司总部
 INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('ceo001', '总经理', 'default', NOW(), 'system');
 -- 管理层
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('shoujianguo', '首建国', 'default', NOW(), 'system');
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('yuqian', '余谦', 'default', NOW(), 'system');
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('wangyong1', '汪勇', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user001', '用户一', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user002', '用户二', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user003', '用户三', 'default', NOW(), 'system');
 -- 信息技术部
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('zhangxinpeng', '张新鹏', 'default', NOW(), 'system');
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('zhaobin1', '赵斌', 'default', NOW(), 'system');
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('zhangyaohua1', '张耀华', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user004', '用户四', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user005', '用户五', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user006', '用户六', 'default', NOW(), 'system');
 -- 政企业务部
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('baiyu', '白玉', 'default', NOW(), 'system');
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('zhangyifei', '张翼飞', 'default', NOW(), 'system');
-INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('zhaowanli', '赵万里', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user019', '用户十九', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user020', '用户二十', 'default', NOW(), 'system');
+INSERT INTO leader (account, name, tenant_code, create_time, created_by) VALUES ('user021', '用户二十一', 'default', NOW(), 'system');
 
 -- 添加组织结构
 -- 添加公司总部
@@ -171,23 +171,23 @@ VALUES ('company', '公司总部', NULL, 'ceo001', 'default', 'COMPANY', NOW(), 
 
 -- 添加信息技术部
 INSERT INTO organization (org_id, org_name, parent_org_id, main_leader_account, tenant_code, org_type, create_time, created_by)
-VALUES ('dept_it', '信息技术部', 'company', 'zhangxinpeng', 'default', 'DEPARTMENT', NOW(), 'system');
+VALUES ('dept_it', '信息技术部', 'company', 'user004', 'default', 'DEPARTMENT', NOW(), 'system');
 
 -- 添加信息技术部副领导
 INSERT INTO organization_deputy_leaders (organization_id, deputy_leader_account, deputy_leader_order)
 VALUES
-((SELECT id FROM organization WHERE org_id = 'dept_it' AND tenant_code = 'default'), 'zhaobin1', 1),
-((SELECT id FROM organization WHERE org_id = 'dept_it' AND tenant_code = 'default'), 'zhangyaohua1', 2);
+((SELECT id FROM organization WHERE org_id = 'dept_it' AND tenant_code = 'default'), 'user005', 1),
+((SELECT id FROM organization WHERE org_id = 'dept_it' AND tenant_code = 'default'), 'user006', 2);
 
 -- 添加政企业务部
 INSERT INTO organization (org_id, org_name, parent_org_id, main_leader_account, tenant_code, org_type, create_time, created_by)
-VALUES ('dept_enterprise', '政企业务部', 'company', 'baiyu', 'default', 'DEPARTMENT', NOW(), 'system');
+VALUES ('dept_enterprise', '政企业务部', 'company', 'user019', 'default', 'DEPARTMENT', NOW(), 'system');
 
 -- 添加政企业务部副领导
 INSERT INTO organization_deputy_leaders (organization_id, deputy_leader_account, deputy_leader_order)
 VALUES
-((SELECT id FROM organization WHERE org_id = 'dept_enterprise' AND tenant_code = 'default'), 'zhangyifei', 1),
-((SELECT id FROM organization WHERE org_id = 'dept_enterprise' AND tenant_code = 'default'), 'zhaowanli', 2);
+((SELECT id FROM organization WHERE org_id = 'dept_enterprise' AND tenant_code = 'default'), 'user020', 1),
+((SELECT id FROM organization WHERE org_id = 'dept_enterprise' AND tenant_code = 'default'), 'user021', 2);
 
 -- =====================================================
 -- 4. 组织关键词初始化
@@ -238,18 +238,18 @@ VALUES
 -- 添加领导领域关系
 INSERT INTO leader_domains (leader_id, domain_id, domain_order)
 VALUES
-((SELECT id FROM leader WHERE account = 'zhangxinpeng' AND tenant_code = 'default'), 'IT_PLANNING', 1),
-((SELECT id FROM leader WHERE account = 'zhaobin1' AND tenant_code = 'default'), 'DATA_GOVERNANCE', 1),
-((SELECT id FROM leader WHERE account = 'baiyu' AND tenant_code = 'default'), 'ENTERPRISE_MARKET', 1),
-((SELECT id FROM leader WHERE account = 'zhangyifei' AND tenant_code = 'default'), 'ENTERPRISE_MARKET', 2);
+((SELECT id FROM leader WHERE account = 'user004' AND tenant_code = 'default'), 'IT_PLANNING', 1),
+((SELECT id FROM leader WHERE account = 'user005' AND tenant_code = 'default'), 'DATA_GOVERNANCE', 1),
+((SELECT id FROM leader WHERE account = 'user019' AND tenant_code = 'default'), 'ENTERPRISE_MARKET', 1),
+((SELECT id FROM leader WHERE account = 'user020' AND tenant_code = 'default'), 'ENTERPRISE_MARKET', 2);
 
 -- 添加领域领导映射
 INSERT INTO domain_leader_mapping (domain_name, leader_account, tenant_code, create_time, created_by)
 VALUES
-('IT规划', 'zhangxinpeng', 'default', NOW(), 'system'),
-('数据治理', 'zhaobin1', 'default', NOW(), 'system'),
-('政企市场', 'baiyu', 'default', NOW(), 'system'),
-('政企市场', 'zhangyifei', 'default', NOW(), 'system');
+('IT规划', 'user004', 'default', NOW(), 'system'),
+('数据治理', 'user005', 'default', NOW(), 'system'),
+('政企市场', 'user019', 'default', NOW(), 'system'),
+('政企市场', 'user020', 'default', NOW(), 'system');
 
 -- =====================================================
 -- 6. 同义词和常用词初始化
@@ -291,9 +291,9 @@ DELETE FROM approval_history WHERE tenant_code = 'default';
 INSERT INTO approval_history (tenant_code, task_id, task_title, initiator_account, initiator_org_id, approver_account, approver_name, workflow_direction, approval_time, approval_result, is_recommended, create_time, created_by)
 VALUES
 -- 政企市场相关历史记录
-('default', 'task001', '关于迎接集团公司政企大客户行为规范培训的通知', 'baiyu', 'team002', 'zhangyifei', '张翼飞', 'DOWNWARD', DATEADD('DAY', -30, NOW()), '同意', false, NOW(), 'system'),
-('default', 'task002', '关于政企客户行为规范培训的通知', 'zhangxinpeng', 'dept001', 'zhaobin1', '赵斌', 'DOWNWARD', DATEADD('DAY', -25, NOW()), '同意', false, NOW(), 'system'),
-('default', 'task003', '政企大客户服务方案', 'baiyu', 'team002', 'zhangyifei', '张翼飞', 'DOWNWARD', DATEADD('DAY', -20, NOW()), '同意', false, NOW(), 'system');
+('default', 'task001', '关于迎接集团公司政企大客户行为规范培训的通知', 'user019', 'team002', 'user020', '用户二十', 'DOWNWARD', DATEADD('DAY', -30, NOW()), '同意', false, NOW(), 'system'),
+('default', 'task002', '关于政企客户行为规范培训的通知', 'user004', 'dept001', 'user005', '用户五', 'DOWNWARD', DATEADD('DAY', -25, NOW()), '同意', false, NOW(), 'system'),
+('default', 'task003', '政企大客户服务方案', 'user019', 'team002', 'user020', '用户二十', 'DOWNWARD', DATEADD('DAY', -20, NOW()), '同意', false, NOW(), 'system');
 
 -- 添加任务模式数据
 DELETE FROM task_pattern_approver_weights;
@@ -330,13 +330,13 @@ SELECT id, '标准', 2 FROM task_pattern WHERE tenant_code = 'default' AND patte
 
 -- 添加审批人权重
 INSERT INTO task_pattern_approver_weights (task_pattern_id, approver_account, weight)
-SELECT id, 'zhangyifei', 0.6 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '政企市场模式';
+SELECT id, 'user020', 0.6 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '政企市场模式';
 
 INSERT INTO task_pattern_approver_weights (task_pattern_id, approver_account, weight)
-SELECT id, 'zhaobin1', 0.4 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '政企市场模式';
+SELECT id, 'user005', 0.4 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '政企市场模式';
 
 INSERT INTO task_pattern_approver_weights (task_pattern_id, approver_account, weight)
-SELECT id, 'zhaobin1', 0.4 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '数据治理模式';
+SELECT id, 'user005', 0.4 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '数据治理模式';
 
 INSERT INTO task_pattern_approver_weights (task_pattern_id, approver_account, weight)
-SELECT id, 'zhangyifei', 0.6 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '数据治理模式';
+SELECT id, 'user020', 0.6 FROM task_pattern WHERE tenant_code = 'default' AND pattern_name = '数据治理模式';
